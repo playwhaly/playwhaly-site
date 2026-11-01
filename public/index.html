@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>威利 Whaly｜殭屍跟單機遊戲實況</title>
+  <meta name="description" content="威利 Whaly的小基地 專玩殭屍生存跟單機遊戲 殭屍毀滅工程玩到現在還是一直死 新影片 開台消息跟所有連結都在這">
+  <meta name="theme-color" content="#0b0f0c">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #0b0f0c;
+      --bg-elev: #121a14;
+      --ink: #e8f0e9;
+      --muted: #9bb0a0;
+      --accent: #7cff9a;
+      --accent-dim: #3d8f55;
+      --danger: #ff6b6b;
+      --line: #243028;
+      --card: #162019;
+      --radius: 14px;
+      --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+      --font: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC",
+        "Microsoft JhengHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(61, 143, 85, 0.18), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(255, 107, 107, 0.08), transparent 55%),
+        var(--bg);
+      line-height: 1.55;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .wrap {
+      width: min(720px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1.5rem 0 3rem;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #1f3a28, #0e1511);
+      border: 1px solid var(--accent-dim);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-size: 1.1rem;
+      box-shadow: inset 0 0 18px rgba(124, 255, 154, 0.15);
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(18, 26, 20, 0.8);
+    }
+
+    .hero {
+      background: linear-gradient(180deg, rgba(22, 32, 25, 0.95), rgba(11, 15, 12, 0.85));
+      border: 1px solid var(--line);
+      border-radius: calc(var(--radius) + 4px);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.25rem;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 0 0 0.75rem;
+    }
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.7rem, 5vw, 2.35rem);
+      line-height: 1.2;
+    }
+
+    .lede {
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+      font-size: 1.02rem;
+    }
+
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 44px;
+      padding: 0.7rem 1.1rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #061008;
+      box-shadow: 0 0 24px rgba(124, 255, 154, 0.25);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.05);
+      text-decoration: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--accent-dim);
+      text-decoration: none;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 0.85rem;
+      font-size: 1.05rem;
+    }
+
+    .socials {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    @media (min-width: 560px) {
+      .socials { grid-template-columns: 1fr 1fr; }
+    }
+
+    .social {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      min-height: 48px;
+    }
+
+    .social:hover {
+      border-color: var(--accent-dim);
+      text-decoration: none;
+    }
+
+    .social span {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .schedule {
+      color: var(--muted);
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    .quiet {
+      margin-top: 1.5rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .quiet a { color: var(--muted); }
+    .quiet a:hover { color: var(--accent); }
+
+    footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      justify-content: space-between;
+    }
+  </style>
+  <!-- Analytics: Cloudflare Web Analytics is switched on in the Pages project settings, which adds its beacon automatically. No manual script here. -->
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="mark" aria-hidden="true">W</div>
+        <div>威利 Whaly</div>
+      </div>
+      <div class="chip">殭屍・單機</div>
+    </header>
+
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow">殭屍生存玩家</p>
+      <h1 id="hero-title">嗨 我是威利 Whaly</h1>
+      <p class="lede">專玩殭屍跟單機遊戲 常常死很慘 但每次都覺得下一把會活更久</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="/yt">去YouTube看影片</a>
+        <a class="btn btn-ghost" href="mailto:hi@playwhaly.com">合作來信</a>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="socials-title">
+      <h2 id="socials-title">在這些地方找我</h2>
+      <div class="socials">
+        <a class="social" href="/yt">
+          <strong>YouTube</strong>
+          <span>@whaly96</span>
+        </a>
+        <a class="social" href="/threads">
+          <strong>Threads</strong>
+          <span>@whaly996</span>
+        </a>
+        <a class="social" href="/ig">
+          <strong>Instagram</strong>
+          <span>whaly996</span>
+        </a>
+        <a class="social" href="/x">
+          <strong>X</strong>
+          <span>@whaly96</span>
+        </a>
+        <!-- Twitch row stays hidden until Whaly confirms a real gaming Twitch account. Then uncomment it and set /twitch in _redirects.
+        <a class="social" href="/twitch">
+          <strong>Twitch</strong>
+          <span></span>
+        </a>
+        -->
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="schedule-title">
+      <h2 id="schedule-title">更新時間</h2>
+      <p class="schedule">目前不定期更新 有新影片或要開台 會先在Threads跟X說</p>
+    </section>
+
+    <!-- Ko-fi link stays hidden until Whaly sends his real Ko-fi URL. Then uncomment it and set /kofi in _redirects.
+    <p class="quiet">
+      <a href="/kofi">想請我喝杯咖啡的話</a>
+    </p>
+    -->
+
+    <footer>
+      <div>© 2026 威利 Whaly</div>
+      <div><a href="mailto:hi@playwhaly.com">hi@playwhaly.com</a></div>
+    </footer>
+  </div>
+</body>
+</html>

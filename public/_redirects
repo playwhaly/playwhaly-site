@@ -1,0 +1,13 @@
+# Cloudflare Pages short-link redirects (301).
+# Replace destination URLs when handles or Ko-fi change.
+# Syntax: https://developers.cloudflare.com/pages/configuration/redirects/
+
+/yt       https://www.youtube.com/@whaly96  301
+/youtube  https://www.youtube.com/@whaly96  301
+/threads  https://www.threads.net/@whaly996 301
+/ig       https://www.instagram.com/whaly996 301
+/instagram https://www.instagram.com/whaly996 301
+/x        https://x.com/whaly96 301
+/twitter  https://x.com/whaly96 301
+# /twitch   (off until Whaly confirms a real gaming Twitch channel URL)
+# /kofi     (off until Whaly sends his real Ko-fi URL)
