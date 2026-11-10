@@ -15,7 +15,7 @@ Static site for playwhaly.com, hosted on Cloudflare Pages.
 
 ## Before every deploy
 
-- Only `index.html`, `404.html`, `_redirects` and `favicon.svg` (plus any assets) live in `public/`.
+- Only `index.html`, `404.html`, `_redirects`, icons, the web manifest and other assets live in `public/`.
 - No notes, drafts or docs go in `public/`.
 - Short links in `public/_redirects` that are commented out stay off until their real URL is confirmed.
 

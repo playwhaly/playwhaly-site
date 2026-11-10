@@ -4,15 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>找不到頁面｜威利 Whaly</title>
-  <meta name="theme-color" content="#0b0f0c">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="description" content="這一頁找不到，先回威利 Whaly 的小基地吧～">
+  <meta name="theme-color" content="#FFF7EE">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <style>
     :root {
-      --bg: #0b0f0c;
-      --ink: #e8f0e9;
-      --muted: #9bb0a0;
-      --accent: #7cff9a;
-      --line: #243028;
+      --bg: #FFF7EE;
+      --card: #FFFFFF;
+      --line: #F0E3D6;
+      --ink: #3A2E2A;
+      --muted: #7A6A62;
+      --accent: #6470C8;
       --font: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC",
         "Microsoft JhengHei", sans-serif;
     }
@@ -25,43 +30,64 @@
       padding: 1.5rem;
       font-family: var(--font);
       color: var(--ink);
-      background:
-        radial-gradient(800px 400px at 50% 0%, rgba(61, 143, 85, 0.16), transparent 60%),
-        var(--bg);
+      background: var(--bg);
       text-align: center;
     }
     .card {
       width: min(420px, 100%);
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 1.75rem 1.4rem;
-      background: #121a14;
+      background: var(--card);
+      box-shadow: 0 4px 14px rgba(58, 46, 42, 0.06);
+    }
+    .mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto 1rem;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .mark img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
     h1 {
       margin: 0 0 0.6rem;
-      font-size: 1.6rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.35;
     }
     p {
       margin: 0 0 1.2rem;
       color: var(--muted);
     }
     a {
-      color: #061008;
+      color: #fff;
       background: var(--accent);
       text-decoration: none;
       font-weight: 700;
       display: inline-flex;
       min-height: 44px;
       align-items: center;
-      padding: 0.65rem 1.1rem;
+      padding: 0.65rem 1.15rem;
       border-radius: 999px;
+      transition: transform 0.15s ease;
     }
+    a:hover { transform: translateY(-2px); }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>這頁被殭屍吃掉了</h1>
-    <p>你要找的頁面不見了 可能被搬走 也可能根本不存在 先回基地吧</p>
+    <div class="mark">
+      <img src="/cat-mark-circle.png" width="48" height="48" alt="威利 Whaly 的貓頭貼">
+    </div>
+    <h1>這頁好像被貓咪叼走了🐱</h1>
+    <p>你要找的頁面不見了，可能搬家了，也可能根本不存在，先回基地吧～</p>
     <a href="/">回基地</a>
   </div>
 </body>

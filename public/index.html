@@ -3,23 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>威利 Whaly｜殭屍跟單機遊戲實況</title>
-  <meta name="description" content="威利 Whaly的小基地 專玩殭屍生存跟單機遊戲 殭屍毀滅工程玩到現在還是一直死 新影片 開台消息跟所有連結都在這">
-  <meta name="theme-color" content="#0b0f0c">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>威利 Whaly｜帶著貓的末日求生玩家</title>
+  <meta name="description" content="威利 Whaly 的小基地，帶著貓玩殭屍毀滅工程跟各種單人生存遊戲。新影片、開台消息跟所有連結都在這裡。">
+  <meta name="theme-color" content="#FFF7EE">
+  <link rel="canonical" href="https://playwhaly.com/">
+  <meta property="og:title" content="威利 Whaly｜帶著貓的末日求生玩家">
+  <meta property="og:description" content="威利 Whaly 的小基地，帶著貓玩殭屍毀滅工程跟各種單人生存遊戲。新影片、開台消息跟所有連結都在這裡。">
+  <meta property="og:url" content="https://playwhaly.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="威利 Whaly">
+  <meta property="og:image" content="https://playwhaly.com/og-image-1200x630.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="威利 Whaly｜帶著貓的末日求生玩家">
+  <meta name="twitter:description" content="威利 Whaly 的小基地，帶著貓玩殭屍毀滅工程跟各種單人生存遊戲。新影片、開台消息跟所有連結都在這裡。">
+  <meta name="twitter:image" content="https://playwhaly.com/og-image-1200x630.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <style>
     :root {
-      --bg: #0b0f0c;
-      --bg-elev: #121a14;
-      --ink: #e8f0e9;
-      --muted: #9bb0a0;
-      --accent: #7cff9a;
-      --accent-dim: #3d8f55;
-      --danger: #ff6b6b;
-      --line: #243028;
-      --card: #162019;
-      --radius: 14px;
-      --shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+      --bg: #FFF7EE;
+      --card: #FFFFFF;
+      --line: #F0E3D6;
+      --ink: #3A2E2A;
+      --muted: #7A6A62;
+      --accent: #6470C8;
+      --radius: 20px;
+      --shadow: 0 4px 14px rgba(58, 46, 42, 0.06);
       --font: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC",
         "Microsoft JhengHei", sans-serif;
     }
@@ -31,10 +44,7 @@
       min-height: 100vh;
       font-family: var(--font);
       color: var(--ink);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(61, 143, 85, 0.18), transparent 60%),
-        radial-gradient(900px 500px at 100% 0%, rgba(255, 107, 107, 0.08), transparent 55%),
-        var(--bg);
+      background: var(--bg);
       line-height: 1.55;
     }
 
@@ -42,7 +52,7 @@
     a:hover { text-decoration: underline; }
 
     .wrap {
-      width: min(720px, calc(100% - 2rem));
+      width: min(560px, calc(100% - 2rem));
       margin: 0 auto;
       padding: 1.5rem 0 3rem;
     }
@@ -52,7 +62,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
     }
 
     .brand {
@@ -64,16 +74,20 @@
     }
 
     .mark {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: linear-gradient(145deg, #1f3a28, #0e1511);
-      border: 1px solid var(--accent-dim);
-      display: grid;
-      place-items: center;
-      color: var(--accent);
-      font-size: 1.1rem;
-      box-shadow: inset 0 0 18px rgba(124, 255, 154, 0.15);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex: 0 0 48px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .mark img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .chip {
@@ -82,15 +96,15 @@
       border: 1px solid var(--line);
       padding: 0.35rem 0.65rem;
       border-radius: 999px;
-      background: rgba(18, 26, 20, 0.8);
+      background: #fff;
     }
 
     .hero {
-      background: linear-gradient(180deg, rgba(22, 32, 25, 0.95), rgba(11, 15, 12, 0.85));
+      background: var(--card);
       border: 1px solid var(--line);
-      border-radius: calc(var(--radius) + 4px);
-      padding: 1.5rem;
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
+      padding: 1.5rem;
       margin-bottom: 1.25rem;
     }
 
@@ -98,15 +112,14 @@
       color: var(--accent);
       font-size: 0.8rem;
       font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
       margin: 0 0 0.75rem;
     }
 
     h1 {
       margin: 0 0 0.75rem;
-      font-size: clamp(1.7rem, 5vw, 2.35rem);
-      line-height: 1.2;
+      font-size: clamp(1.7rem, 5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.25;
     }
 
     .lede {
@@ -127,40 +140,33 @@
       justify-content: center;
       gap: 0.4rem;
       min-height: 44px;
-      padding: 0.7rem 1.1rem;
+      padding: 0.7rem 1.15rem;
       border-radius: 999px;
       border: 1px solid transparent;
       font-weight: 700;
       font-size: 0.95rem;
       text-decoration: none;
+      transition: transform 0.15s ease;
     }
+
+    .btn:hover { text-decoration: none; transform: translateY(-2px); }
 
     .btn-primary {
       background: var(--accent);
-      color: #061008;
-      box-shadow: 0 0 24px rgba(124, 255, 154, 0.25);
-    }
-
-    .btn-primary:hover {
-      filter: brightness(1.05);
-      text-decoration: none;
+      color: #fff;
     }
 
     .btn-ghost {
-      background: transparent;
+      background: #fff;
       color: var(--ink);
       border-color: var(--line);
-    }
-
-    .btn-ghost:hover {
-      border-color: var(--accent-dim);
-      text-decoration: none;
     }
 
     .panel {
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius);
+      box-shadow: var(--shadow);
       padding: 1.15rem 1.2rem;
       margin-bottom: 1rem;
     }
@@ -168,15 +174,16 @@
     .panel h2 {
       margin: 0 0 0.85rem;
       font-size: 1.05rem;
+      font-weight: 700;
     }
 
     .socials {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 0.65rem;
+      gap: 0.55rem;
     }
 
-    @media (min-width: 560px) {
+    @media (min-width: 520px) {
       .socials { grid-template-columns: 1fr 1fr; }
     }
 
@@ -185,18 +192,16 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.75rem;
-      padding: 0.85rem 1rem;
-      border-radius: 12px;
-      background: var(--bg-elev);
+      padding: 0.75rem 0.95rem;
+      border-radius: 16px;
+      background: var(--bg);
       border: 1px solid var(--line);
       color: var(--ink);
       min-height: 48px;
+      transition: transform 0.15s ease;
     }
 
-    .social:hover {
-      border-color: var(--accent-dim);
-      text-decoration: none;
-    }
+    .social:hover { text-decoration: none; transform: translateY(-2px); }
 
     .social span {
       color: var(--muted);
@@ -206,18 +211,7 @@
     .schedule {
       color: var(--muted);
       margin: 0;
-      white-space: pre-line;
     }
-
-    .quiet {
-      margin-top: 1.5rem;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
-
-    .quiet a { color: var(--muted); }
-    .quiet a:hover { color: var(--accent); }
 
     footer {
       margin-top: 2rem;
@@ -236,16 +230,18 @@
   <div class="wrap">
     <header>
       <div class="brand">
-        <div class="mark" aria-hidden="true">W</div>
+        <div class="mark">
+          <img src="/cat-mark-circle.png" width="48" height="48" alt="威利 Whaly 的貓頭貼">
+        </div>
         <div>威利 Whaly</div>
       </div>
-      <div class="chip">殭屍・單機</div>
+      <div class="chip">生存・單機・貓</div>
     </header>
 
     <section class="hero" aria-labelledby="hero-title">
-      <p class="eyebrow">殭屍生存玩家</p>
-      <h1 id="hero-title">嗨 我是威利 Whaly</h1>
-      <p class="lede">專玩殭屍跟單機遊戲 常常死很慘 但每次都覺得下一把會活更久</p>
+      <p class="eyebrow">帶著貓的生存玩家</p>
+      <h1 id="hero-title">嗨，我是威利 Whaly</h1>
+      <p class="lede">主玩殭屍毀滅工程跟各種單人生存遊戲，貓咪負責監工，我負責努力多活幾天～</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="/yt">去YouTube看影片</a>
         <a class="btn btn-ghost" href="mailto:hi@playwhaly.com">合作來信</a>
@@ -288,7 +284,7 @@
 
     <section class="panel" aria-labelledby="schedule-title">
       <h2 id="schedule-title">更新時間</h2>
-      <p class="schedule">長片 隔週五晚上6點45左右上片<br>Shorts 每週一 三 六<br>有開台或新消息 會先在Threads跟X說</p>
+      <p class="schedule">長片隔週五晚上6點45左右上片<br>Shorts 每週一、三、六<br>圖奇實況時間看社群公告<br>有開台或新消息，會先在Threads跟X說</p>
     </section>
 
     <footer>
