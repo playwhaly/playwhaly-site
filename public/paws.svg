@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <!-- Sparse repeating paw prints. Warm tan #C4A484 at 10% opacity on cream #FFF7EE.
+       Opacity is on the group so overlapping pad and toes do not stack. -->
+  <g fill="#C4A484" opacity="0.1">
+    <g transform="translate(28,32) rotate(-18 12 12)">
+      <ellipse cx="12" cy="15.5" rx="6.2" ry="5"/>
+      <circle cx="4.8" cy="8.6" r="2.15"/>
+      <circle cx="9" cy="5.8" r="2.35"/>
+      <circle cx="15.2" cy="5.8" r="2.35"/>
+      <circle cx="19.2" cy="8.6" r="2.15"/>
+    </g>
+    <g transform="translate(108,108) rotate(22 12 12)">
+      <ellipse cx="12" cy="15.5" rx="6.2" ry="5"/>
+      <circle cx="4.8" cy="8.6" r="2.15"/>
+      <circle cx="9" cy="5.8" r="2.35"/>
+      <circle cx="15.2" cy="5.8" r="2.35"/>
+      <circle cx="19.2" cy="8.6" r="2.15"/>
+    </g>
+  </g>
+</svg>
