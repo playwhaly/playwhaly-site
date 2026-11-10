@@ -31,6 +31,7 @@
       --ink: #3A2E2A;
       --muted: #7A6A62;
       --accent: #6470C8;
+      --link: #3F4A90;
       --radius: 20px;
       --shadow: 0 4px 14px rgba(58, 46, 42, 0.06);
       --font: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "PingFang TC",
@@ -50,7 +51,7 @@
       line-height: 1.55;
     }
 
-    a { color: var(--accent); text-decoration: none; }
+    a { color: var(--link); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
     .wrap {
@@ -64,7 +65,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2.4rem;
     }
 
     .brand {
@@ -102,12 +103,31 @@
     }
 
     .hero {
+      position: relative;
       background: var(--card);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 1.5rem;
       margin-bottom: 1.25rem;
+    }
+
+    .hero-peek {
+      position: absolute;
+      top: 0;
+      right: 1.35rem;
+      width: 72px;
+      height: 58px;
+      transform: translateY(-62%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .hero-peek svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
     }
 
     .eyebrow {
@@ -215,16 +235,46 @@
       margin: 0;
     }
 
+    .paw-trail {
+      display: flex;
+      justify-content: flex-start;
+      margin: 0.15rem 0.35rem 0.15rem;
+      pointer-events: none;
+    }
+
+    .paw-trail svg {
+      display: block;
+      width: 168px;
+      height: 37px;
+    }
+
     footer {
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 1px solid var(--line);
+      margin-top: 0.85rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 12px;
+      background-color: var(--bg);
       color: var(--muted);
       font-size: 0.8rem;
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem 1rem;
       justify-content: space-between;
+    }
+
+    footer a { color: var(--link); }
+
+    @media (max-width: 519px) {
+      header { margin-bottom: 2.1rem; }
+      .hero-peek {
+        width: 58px;
+        height: 47px;
+        right: 0.8rem;
+        transform: translateY(-60%);
+      }
+      .paw-trail svg {
+        width: 132px;
+        height: 29px;
+      }
     }
   </style>
 </head>
@@ -241,6 +291,23 @@
     </header>
 
     <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-peek" aria-hidden="true">
+        <svg viewBox="0 0 80 64" width="72" height="58" fill="none">
+          <path d="M25 32 L21 16 Q27 13 36 30 Z" fill="#FFF7EE" stroke="#3A2E2A" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M55 32 L60 17 Q54 14 44 30 Z" fill="#FFF7EE" stroke="#3A2E2A" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M26 29 L24 19 L33 28 Z" fill="#6470C8"/>
+          <path d="M54 29 L57 20 L47 28 Z" fill="#6470C8"/>
+          <ellipse cx="40" cy="41" rx="20" ry="17" fill="#FFF7EE" stroke="#3A2E2A" stroke-width="1.6"/>
+          <circle cx="32.5" cy="39" r="2.05" fill="#3A2E2A"/>
+          <circle cx="47.5" cy="39.4" r="2.05" fill="#3A2E2A"/>
+          <path d="M40 43.2 L38 45.8 H42 Z" fill="#3A2E2A"/>
+          <path d="M40 45.8 Q36.5 48 34 46.6" stroke="#3A2E2A" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M22 38 H15 M21 42 H14" stroke="#3A2E2A" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M58 38 H65 M59 42 H66" stroke="#3A2E2A" stroke-width="1.2" stroke-linecap="round"/>
+          <ellipse cx="26" cy="59.5" rx="8" ry="5.4" fill="#FFF7EE" stroke="#3A2E2A" stroke-width="1.6"/>
+          <ellipse cx="54" cy="59.5" rx="8" ry="5.4" fill="#FFF7EE" stroke="#3A2E2A" stroke-width="1.6"/>
+        </svg>
+      </div>
       <p class="eyebrow">帶著貓的生存玩家</p>
       <h1 id="hero-title">嗨，我是威利 Whaly</h1>
       <p class="lede">主玩殭屍毀滅工程跟各種單人生存遊戲，貓咪負責監工，我負責努力多活幾天～</p>
@@ -285,6 +352,42 @@
       <p class="schedule">長片隔週五晚上6點45左右上片<br>Shorts 每週一、三、六<br>圖奇實況時間看社群公告<br>有開台或新消息，會先在Threads跟X說</p>
     </section>
 
+    <div class="paw-trail" aria-hidden="true">
+      <svg viewBox="0 0 200 44" width="168" height="37">
+        <g fill="#C4A484">
+          <g transform="translate(8,10) rotate(-18 10 10) scale(0.85)">
+            <ellipse cx="12" cy="15.5" rx="6.2" ry="5"/>
+            <circle cx="4.8" cy="8.6" r="2.15"/>
+            <circle cx="9" cy="5.8" r="2.35"/>
+            <circle cx="15.2" cy="5.8" r="2.35"/>
+            <circle cx="19.2" cy="8.6" r="2.15"/>
+          </g>
+          <g transform="translate(108,6) rotate(8 10 10) scale(0.95)">
+            <ellipse cx="12" cy="15.5" rx="6.2" ry="5"/>
+            <circle cx="4.8" cy="8.6" r="2.15"/>
+            <circle cx="9" cy="5.8" r="2.35"/>
+            <circle cx="15.2" cy="5.8" r="2.35"/>
+            <circle cx="19.2" cy="8.6" r="2.15"/>
+          </g>
+        </g>
+        <g fill="#6470C8">
+          <g transform="translate(56,4) rotate(22 10 10) scale(0.9)">
+            <ellipse cx="12" cy="15.5" rx="6.2" ry="5"/>
+            <circle cx="4.8" cy="8.6" r="2.15"/>
+            <circle cx="9" cy="5.8" r="2.35"/>
+            <circle cx="15.2" cy="5.8" r="2.35"/>
+            <circle cx="19.2" cy="8.6" r="2.15"/>
+          </g>
+          <g transform="translate(156,12) rotate(-28 10 10) scale(1)">
+            <ellipse cx="12" cy="15.5" rx="6.2" ry="5"/>
+            <circle cx="4.8" cy="8.6" r="2.15"/>
+            <circle cx="9" cy="5.8" r="2.35"/>
+            <circle cx="15.2" cy="5.8" r="2.35"/>
+            <circle cx="19.2" cy="8.6" r="2.15"/>
+          </g>
+        </g>
+      </svg>
+    </div>
     <footer>
       <div>© 2026 威利 Whaly</div>
       <div><a href="mailto:hi@playwhaly.com">hi@playwhaly.com</a></div>
