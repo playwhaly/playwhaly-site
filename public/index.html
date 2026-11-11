@@ -302,19 +302,15 @@
     }
 
     .latest {
-      padding: 1.7rem 1.5rem 2rem;
-      margin-bottom: 1.35rem;
+      padding: 1.5rem 1.2rem 1.7rem;
     }
 
     .latest h2 {
-      margin: 0 0 1.05rem;
+      margin: 0 0 1rem;
     }
 
-    .latest-featured {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-      margin-bottom: 2.35rem;
+    .latest-video {
+      margin-bottom: 2rem;
     }
 
     .latest-more-head {
@@ -351,7 +347,6 @@
     }
 
     .vcard-thumb.wide { aspect-ratio: 16 / 9; }
-    .vcard-thumb.tall { aspect-ratio: 9 / 16; }
 
     .vcard-thumb img {
       display: block;
@@ -380,7 +375,6 @@
 
     .latest-video .vcard-title {
       font-size: 1.08rem;
-      -webkit-line-clamp: 3;
     }
 
     .vcard-date {
@@ -410,23 +404,6 @@
       border-color: transparent transparent transparent #fff;
     }
 
-    .latest-short .vcard-thumb.tall {
-      width: 138px;
-      flex: 0 0 138px;
-    }
-
-    @media (max-width: 839px) {
-      .latest-short .vcard {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 1.1rem;
-      }
-
-      .latest-short .vcard-meta {
-        padding-top: 0.15rem;
-      }
-    }
-
     .latest-more .play {
       width: 38px;
       height: 38px;
@@ -439,33 +416,10 @@
       border-width: 7px 0 7px 11px;
     }
 
-    @media (min-width: 840px) {
-      .latest {
-        width: min(960px, calc(100vw - 3rem));
-        position: relative;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 2rem 2rem 2.25rem;
-      }
-
-      .latest-featured {
-        grid-template-columns: minmax(0, 1fr) 220px;
-        gap: 2.4rem;
-        align-items: start;
-      }
-
+    @media (min-width: 520px) {
       .latest-more {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1.7rem 1.5rem;
-      }
-
-      .latest-short .vcard-thumb.tall {
-        width: 100%;
-        flex: none;
-      }
-
-      .latest-more .vcard-title {
-        font-size: 0.9rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.6rem 1.4rem;
       }
     }
   </style>
@@ -545,33 +499,18 @@
     </section>
 
     <section class="panel latest" aria-labelledby="latest-title">
-      <div class="latest-featured">
-        <div class="latest-video">
-          <h2 id="latest-title">最新影片</h2>
-          <a class="vcard" href="https://www.youtube.com/watch?v=gkBtjBj17FM">
-            <span class="vcard-thumb wide">
-              <img src="https://i.ytimg.com/vi/gkBtjBj17FM/hqdefault.jpg" width="480" height="360" alt="《島嶼生存者 The Survivalists》從零開始的猴島求生！">
-              <span class="play" aria-hidden="true"></span>
-            </span>
-            <span class="vcard-meta">
-              <span class="vcard-title">《島嶼生存者 The Survivalists》從零開始的猴島求生！</span>
-              <span class="vcard-date">11月6日</span>
-            </span>
-          </a>
-        </div>
-        <div class="latest-short">
-          <h2 id="latest-shorts-title">最新 Shorts</h2>
-          <a class="vcard" href="https://www.youtube.com/shorts/opjMXjp0AmA">
-            <span class="vcard-thumb tall">
-              <img src="https://i.ytimg.com/vi/opjMXjp0AmA/hqdefault.jpg" width="480" height="360" alt="阿嬤喝個水都這麼難的嗎？？">
-              <span class="play" aria-hidden="true"></span>
-            </span>
-            <span class="vcard-meta">
-              <span class="vcard-title">阿嬤喝個水都這麼難的嗎？？</span>
-              <span class="vcard-date">11月9日</span>
-            </span>
-          </a>
-        </div>
+      <div class="latest-video">
+        <h2 id="latest-title">最新影片</h2>
+        <a class="vcard" href="https://www.youtube.com/watch?v=gkBtjBj17FM">
+          <span class="vcard-thumb wide">
+            <img src="https://i.ytimg.com/vi/gkBtjBj17FM/hqdefault.jpg" width="480" height="360" alt="《島嶼生存者 The Survivalists》從零開始的猴島求生！">
+            <span class="play" aria-hidden="true"></span>
+          </span>
+          <span class="vcard-meta">
+            <span class="vcard-title">《島嶼生存者 The Survivalists》從零開始的猴島求生！</span>
+            <span class="vcard-date">11月6日</span>
+          </span>
+        </a>
       </div>
       <h2 id="latest-more-title" class="latest-more-head">更多影片</h2>
       <div class="latest-more">
