@@ -21,7 +21,8 @@ The project must be Git connected, or deployed with Wrangler. Dashboard Direct U
 
 ## Before every deploy
 
-- Only `index.html`, `404.html`, `_redirects`, `_routes.json`, `latest.js`, icons, the web manifest and other assets live in `public/`.
+- Only `index.html`, `404.html`, `_redirects`, `_routes.json`, `latest.js`, `data/latest.json`, icons, the web manifest and other assets live in `public/`.
+- `data/latest.json` is a checked in list of recent long form videos. The `/api/latest` Function uses it when the YouTube feed is down, and the homepage script uses it if the API itself fails.
 - No notes, drafts or docs go in `public/`.
 - Short links in `public/_redirects` that are commented out stay off until their real URL is confirmed.
 

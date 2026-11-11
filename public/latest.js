@@ -76,20 +76,27 @@
   var ctrl = new AbortController();
   var timer = setTimeout(function () { ctrl.abort(); }, 8000);
 
-  fetch("/api/latest", { signal: ctrl.signal, headers: { Accept: "application/json" } })
-    .then(function (res) {
-      if (!res.ok) throw new Error("bad status");
-      return res.json();
-    })
-    .then(function (data) {
-      if (!data || data.error) return;
-      fillCard(section.querySelector(".latest-video .vcard"), data.latest);
-      var cards = section.querySelectorAll(".latest-more .vcard");
-      var more = Array.isArray(data.more) ? data.more : [];
-      for (var i = 0; i < cards.length && i < more.length; i++) {
-        fillCard(cards[i], more[i]);
-      }
-    })
+  function loadJson(url) {
+    return fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } })
+      .then(function (res) {
+        if (!res.ok) throw new Error("bad status");
+        return res.json();
+      });
+  }
+
+  function applyPayload(data) {
+    if (!data || data.error) return;
+    fillCard(section.querySelector(".latest-video .vcard"), data.latest);
+    var cards = section.querySelectorAll(".latest-more .vcard");
+    var more = Array.isArray(data.more) ? data.more : [];
+    for (var i = 0; i < cards.length && i < more.length; i++) {
+      fillCard(cards[i], more[i]);
+    }
+  }
+
+  loadJson("/api/latest")
+    .catch(function () { return loadJson("/data/latest.json"); })
+    .then(applyPayload)
     .catch(function () {})
     .then(function () { clearTimeout(timer); });
 })();
