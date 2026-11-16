@@ -195,3 +195,10 @@ footer{margin-top:2rem;padding:.8rem 1rem;border-radius:14px;background:rgba(255
 @media (max-width:640px){.mp-glyph{width:64px;height:64px}.mp-mock{font-size:.6rem}}
 /* stacked layouts: don't let the intro card overlap the player's control bar */
 @media (max-width:900px){.stage.live-player + .intro{margin-top:1rem}}
+
+/* game chips are links to that game's videos on the channel */
+a.chip{color:inherit;text-decoration:none;cursor:pointer}
+a.chip.main{color:#fff}
+a.chip:focus-visible{outline:3px solid var(--accent);outline-offset:3px;transform:translateY(-3px);border-color:var(--accent-2);box-shadow:0 8px 18px rgba(100,112,200,.25)}
+a.chip.main:focus-visible{outline-color:var(--ink)}
+.cell[hidden]{display:none}

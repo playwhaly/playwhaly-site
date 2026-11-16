@@ -3,9 +3,9 @@ const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 const FETCH_MS = 8000;
 // Edge cache for the parsed feed. YouTube itself refreshes the RSS about every 15 min, so 30 min is plenty.
 const CACHE_SECONDS = 1800;
-// Hero slideshow uses the newest 3, the grid uses the newest 6 after the first.
-const NEED = 7;
-const MORE = 6;
+// Hero slideshow uses the newest 3, the grid shows up to 9 more (3 full rows of 3).
+const NEED = 10;
+const MORE = 9;
 const UULF_URL =
   "https://www.youtube.com/feeds/videos.xml?playlist_id=UULF" +
   CHANNEL_ID.slice(2);

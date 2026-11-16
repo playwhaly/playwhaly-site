@@ -74,7 +74,7 @@ function mockFetch(handlers) {
 
 assert.equal(isPayload(staticJson), true, "committed JSON is a valid payload");
 assert.equal(staticJson.latest.url, "https://www.youtube.com/watch?v=gkBtjBj17FM");
-assert.equal(staticJson.more.length, 6);
+assert.equal(staticJson.more.length, 9);
 
 const parsed = parseFeed(sampleXml);
 assert.equal(parsed.length, 3);
@@ -91,7 +91,7 @@ const fromStatic = await loadStaticPayload(
   "https://playwhaly.com",
 );
 assert.equal(fromStatic.latest.title, staticJson.latest.title);
-assert.equal(fromStatic.more.length, 6);
+assert.equal(fromStatic.more.length, 9);
 
 const emptyStatic = await loadStaticPayload(
   mockFetch({ "/data/latest.json": async () => jsonResponse({ error: "nope" }) }),

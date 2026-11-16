@@ -18,20 +18,33 @@
   var $ = function (s) { return document.querySelector(s); };
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ---- Scroll reveal ---- */
-  var io = null;
-  function observeReveals() {
-    var els = [].slice.call(document.querySelectorAll(".reveal:not(.in)"));
-    if (reduce || /[?&]reveal=all/.test(qs) || !("IntersectionObserver" in window)) {
-      els.forEach(function (e) { e.classList.add("in"); });
-      return;
-    }
-    if (!io) {
-      io = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
-      }, { threshold: 0.15, rootMargin: "0px 0px -6% 0px" });
-    }
-    els.forEach(function (e) { io.observe(e); });
+  /* ---- Scroll reveal ----
+     Plain scroll/resize check instead of IntersectionObserver, so a card can never stay invisible because an
+     observer callback was missed (cards that are on screen always get revealed). */
+  var revealTick = 0;
+  function revealNow() {
+    revealTick = 0;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var all = reduce || /[?&]reveal=all/.test(qs);
+    document.querySelectorAll(".reveal:not(.in)").forEach(function (e) {
+      if (all || e.getBoundingClientRect().top < vh * 0.94) e.classList.add("in");
+    });
+  }
+  function queueReveal() { if (!revealTick) revealTick = requestAnimationFrame(revealNow); }
+  function observeReveals() { revealNow(); }
+  window.addEventListener("scroll", queueReveal, { passive: true });
+  window.addEventListener("resize", function () { queueReveal(); fitGrid(); });
+  window.addEventListener("load", function () { revealNow(); fitGrid(); });
+
+  /* Show only whole rows: hide the trailing cards that would leave a half-empty last row (3, 2 or 1 columns). */
+  function fitGrid() {
+    var grid = $("#video-grid");
+    if (!grid) return;
+    var cells = [].slice.call(grid.children);
+    cells.forEach(function (c) { c.hidden = false; });
+    var cols = getComputedStyle(grid).gridTemplateColumns.split(" ").length || 1;
+    var keep = cells.length >= cols ? Math.floor(cells.length / cols) * cols : cells.length;
+    cells.forEach(function (c, i) { c.hidden = i >= keep; });
   }
 
   /* ---- Card tilt (pointer devices only) ---- */
@@ -73,7 +86,7 @@
       badge.querySelector(".badge-text").textContent = "最新上傳 · " + (g ? g + " · " : "") + PW.formatMD(videos[0].published);
     }
     var grid = $("#video-grid");
-    if (grid) { grid.innerHTML = PW.cardsHTML(videos.slice(1, 7)); observeReveals(); bindTilt(); }
+    if (grid) { grid.innerHTML = PW.cardsHTML(videos.slice(1, 10)); fitGrid(); observeReveals(); bindTilt(); }
     if (!liveNow) renderSlides();
     renderNext();
   }
@@ -147,6 +160,7 @@
     setTimeout(checkLive, LIVE_POLL_MS);
   }
 
+  fitGrid();
   observeReveals();
   bindTilt();
   checkLive();
