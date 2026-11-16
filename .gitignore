@@ -3,3 +3,4 @@
 screenshots/
 .wrangler/
 node_modules/
+.dev.vars

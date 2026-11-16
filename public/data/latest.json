@@ -3,32 +3,51 @@
     "title": "《島嶼生存者 The Survivalists》從零開始的猴島求生！",
     "url": "https://www.youtube.com/watch?v=gkBtjBj17FM",
     "published": "2026-11-06T10:45:37.000Z",
-    "thumbnail": "https://i.ytimg.com/vi/gkBtjBj17FM/hqdefault.jpg"
+    "thumbnail": "https://i.ytimg.com/vi/gkBtjBj17FM/maxresdefault.jpg",
+    "thumbnailFallback": "https://i.ytimg.com/vi/gkBtjBj17FM/hqdefault.jpg"
   },
   "more": [
     {
       "title": "《Core Keeper 核心守護者》從零開始！我們一路打敗所有BOSS！",
       "url": "https://www.youtube.com/watch?v=o8PfE9eV5Qg",
       "published": "2026-10-23T10:45:19.000Z",
-      "thumbnail": "https://i.ytimg.com/vi/o8PfE9eV5Qg/hqdefault.jpg"
+      "thumbnail": "https://i.ytimg.com/vi/o8PfE9eV5Qg/maxresdefault.jpg",
+      "thumbnailFallback": "https://i.ytimg.com/vi/o8PfE9eV5Qg/hqdefault.jpg"
     },
     {
       "title": "《陰森 The Forest》這根本是恐怖遊戲！揭開尋子的殘酷真相！",
       "url": "https://www.youtube.com/watch?v=5vFKlq5HtZI",
       "published": "2026-10-09T10:45:34.000Z",
-      "thumbnail": "https://i.ytimg.com/vi/5vFKlq5HtZI/hqdefault.jpg"
+      "thumbnail": "https://i.ytimg.com/vi/5vFKlq5HtZI/maxresdefault.jpg",
+      "thumbnailFallback": "https://i.ytimg.com/vi/5vFKlq5HtZI/hqdefault.jpg"
     },
     {
       "title": "我們快餓死了，闖入的陌生人居然幫忙蓋家？ | 饑荒聯機版 Don't Starve Together 搞笑片段精華 EP.8",
       "url": "https://www.youtube.com/watch?v=L8EL-gcBn2I",
       "published": "2026-09-25T10:45:34.000Z",
-      "thumbnail": "https://i.ytimg.com/vi/L8EL-gcBn2I/hqdefault.jpg"
+      "thumbnail": "https://i.ytimg.com/vi/L8EL-gcBn2I/maxresdefault.jpg",
+      "thumbnailFallback": "https://i.ytimg.com/vi/L8EL-gcBn2I/hqdefault.jpg"
     },
     {
       "title": "《殭屍毀滅工程 Project Zomboid》B42全新探索！玫木鎮居然變這樣了",
       "url": "https://www.youtube.com/watch?v=mIX--dkbqAc",
       "published": "2026-09-11T10:45:25.000Z",
-      "thumbnail": "https://i.ytimg.com/vi/mIX--dkbqAc/hqdefault.jpg"
+      "thumbnail": "https://i.ytimg.com/vi/mIX--dkbqAc/maxresdefault.jpg",
+      "thumbnailFallback": "https://i.ytimg.com/vi/mIX--dkbqAc/hqdefault.jpg"
+    },
+    {
+      "title": "我們的《RAFT 筏上求生》六十二天極限生存記！這是一場從四塊木板開始的海上大冒險！",
+      "url": "https://www.youtube.com/watch?v=1w_mu_K2VmA",
+      "published": "2026-08-28T10:45:27.000Z",
+      "thumbnail": "https://i.ytimg.com/vi/1w_mu_K2VmA/maxresdefault.jpg",
+      "thumbnailFallback": "https://i.ytimg.com/vi/1w_mu_K2VmA/hqdefault.jpg"
+    },
+    {
+      "title": "我把一座破墓園經營成殭屍也攻不破！《殭屍墓園模擬器 Zombie Graveyard Simulator》",
+      "url": "https://www.youtube.com/watch?v=uT1l6YKJjqI",
+      "published": "2026-08-14T10:45:39.000Z",
+      "thumbnail": "https://i.ytimg.com/vi/uT1l6YKJjqI/maxresdefault.jpg",
+      "thumbnailFallback": "https://i.ytimg.com/vi/uT1l6YKJjqI/hqdefault.jpg"
     }
   ]
 }

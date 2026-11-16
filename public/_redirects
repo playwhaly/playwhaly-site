@@ -1,13 +1,14 @@
 # Cloudflare Pages short-link redirects (301).
-# Replace destination URLs when handles change.
+# Handles are playwhaly on every platform listed first. Discord keeps its invite link.
 # Syntax: https://developers.cloudflare.com/pages/configuration/redirects/
 
-/yt       https://www.youtube.com/@whaly96  301
-/youtube  https://www.youtube.com/@whaly96  301
-/threads  https://www.threads.net/@whaly996 301
-/ig       https://www.instagram.com/whaly996 301
-/instagram https://www.instagram.com/whaly996 301
-/x        https://x.com/whaly96 301
-/twitter  https://x.com/whaly96 301
-/twitch   https://www.twitch.tv/whaly96 301
-/discord  https://discord.com/invite/Zn6HvqPkbG 301
+/yt        https://www.youtube.com/@playwhaly   301
+/youtube   https://www.youtube.com/@playwhaly   301
+/threads   https://www.threads.com/@playwhaly   301
+/ig        https://www.instagram.com/playwhaly  301
+/instagram https://www.instagram.com/playwhaly  301
+/x         https://x.com/playwhaly              301
+/twitter   https://x.com/playwhaly              301
+/twitch    https://www.twitch.tv/playwhaly      301
+/tiktok    https://www.tiktok.com/@playwhaly    301
+/discord   https://discord.com/invite/Zn6HvqPkbG 301

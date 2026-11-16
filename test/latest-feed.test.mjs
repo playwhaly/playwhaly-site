@@ -74,7 +74,7 @@ function mockFetch(handlers) {
 
 assert.equal(isPayload(staticJson), true, "committed JSON is a valid payload");
 assert.equal(staticJson.latest.url, "https://www.youtube.com/watch?v=gkBtjBj17FM");
-assert.equal(staticJson.more.length, 4);
+assert.equal(staticJson.more.length, 6);
 
 const parsed = parseFeed(sampleXml);
 assert.equal(parsed.length, 3);
@@ -91,7 +91,7 @@ const fromStatic = await loadStaticPayload(
   "https://playwhaly.com",
 );
 assert.equal(fromStatic.latest.title, staticJson.latest.title);
-assert.equal(fromStatic.more.length, 4);
+assert.equal(fromStatic.more.length, 6);
 
 const emptyStatic = await loadStaticPayload(
   mockFetch({ "/data/latest.json": async () => jsonResponse({ error: "nope" }) }),
@@ -107,7 +107,9 @@ const feedHit = await resolveLatest(
   { baseUrl: "https://playwhaly.com" },
 );
 assert.equal(feedHit.source, "feed");
-assert.equal(feedHit.cacheSeconds, 900);
+assert.equal(feedHit.cacheSeconds, 1800);
+assert.equal(feedHit.payload.latest.thumbnail.endsWith("/maxresdefault.jpg"), true);
+assert.equal(feedHit.payload.latest.thumbnailFallback.endsWith("/hqdefault.jpg"), true);
 assert.equal(feedHit.payload.latest.url.includes("gkBtjBj17FM"), true);
 
 let uulfCalls = 0;
