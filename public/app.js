@@ -89,6 +89,78 @@
     if (grid) { grid.innerHTML = PW.cardsHTML(videos.slice(1, 10)); fitGrid(); observeReveals(); bindTilt(); }
     if (!liveNow) renderSlides();
     renderNext();
+    renderGameChips();
+  }
+
+  /* Prepend games found in the latest long-video titles that are not already in the hardcoded chips/marquee.
+     The 14 chips in the HTML stay as the no-JS / API-failure baseline. New nodes use textContent, never raw innerHTML. */
+  var PAW = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="6.2" ry="5"/><circle cx="4.8" cy="8.6" r="2.15"/><circle cx="9" cy="5.8" r="2.35"/><circle cx="15.2" cy="5.8" r="2.35"/><circle cx="19.2" cy="8.6" r="2.15"/></svg>';
+
+  function chipKeys(root) {
+    var keys = [];
+    root.querySelectorAll("a.chip").forEach(function (a) {
+      var label = (a.textContent || "").replace(/\s+/g, " ").trim();
+      if (label) keys.push(label);
+      try {
+        var q = new URL(a.href, location.href).searchParams.get("query");
+        if (q) keys.push(q);
+      } catch (e) { /* ignore bad href */ }
+    });
+    return keys;
+  }
+
+  function pawSvg(from) {
+    var svg = from && from.querySelector("svg");
+    if (svg) return svg.cloneNode(true);
+    var wrap = document.createElement("span");
+    wrap.innerHTML = PAW;
+    return wrap.firstChild;
+  }
+
+  function makeChip(game, svgSource) {
+    var a = document.createElement("a");
+    a.className = "chip";
+    a.href = "https://www.youtube.com/@playwhaly/search?query=" + encodeURIComponent(game.query);
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.title = "在 YouTube 頻道搜尋：" + game.label;
+    a.appendChild(pawSvg(svgSource));
+    var name = document.createElement("span");
+    name.className = "chip-label";
+    name.textContent = game.label;
+    a.appendChild(name);
+    return a;
+  }
+
+  function makeMarqueeItem(label, hidden, svgSource) {
+    var span = document.createElement("span");
+    if (hidden) span.setAttribute("aria-hidden", "true");
+    else span.title = label;
+    span.appendChild(pawSvg(svgSource));
+    var name = document.createElement("span");
+    name.className = "mq-label";
+    name.textContent = label;
+    span.appendChild(name);
+    return span;
+  }
+
+  function renderGameChips() {
+    if (!videos || !videos.length) return;
+    var chips = document.querySelector("#games .chips");
+    var track = document.querySelector(".marquee-track");
+    if (!chips) return;
+    var added = PW.newGamesFromTitles(videos.map(function (v) { return v.title; }), chipKeys(chips));
+    if (!added.length) return;
+    var chipSvg = chips.querySelector("a.chip");
+    var markSvg = track && track.querySelector("span");
+    for (var i = added.length - 1; i >= 0; i--) {
+      chips.insertBefore(makeChip(added[i], chipSvg), chips.firstChild);
+      if (!track) continue;
+      track.insertBefore(makeMarqueeItem(added[i].label, false, markSvg), track.firstChild);
+      // Only direct children: the paw SVG also has aria-hidden="true".
+      var hiddenStart = track.querySelector(":scope > [aria-hidden='true']");
+      if (hiddenStart) track.insertBefore(makeMarqueeItem(added[i].label, true, markSvg), hiddenStart);
+    }
   }
 
   function renderSlides() {
