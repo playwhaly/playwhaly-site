@@ -1,8 +1,11 @@
 const CHANNEL_ID = "UCa7pDF8Jgdpg-7mUeOlundQ";
 const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 const FETCH_MS = 8000;
-const CACHE_SECONDS = 900;
-const NEED = 5;
+// Edge cache for the parsed feed. YouTube itself refreshes the RSS about every 15 min, so 30 min is plenty.
+const CACHE_SECONDS = 1800;
+// Hero slideshow uses the newest 3, the grid shows up to 9 more (3 full rows of 3).
+const NEED = 10;
+const MORE = 9;
 const UULF_URL =
   "https://www.youtube.com/feeds/videos.xml?playlist_id=UULF" +
   CHANNEL_ID.slice(2);
@@ -63,7 +66,13 @@ export function normalizeWatchUrl(videoId) {
   return "https://www.youtube.com/watch?v=" + videoId;
 }
 
+// maxresdefault is 1280x720. A few videos have no maxres (YouTube answers 404), so the page falls back
+// to thumbnailFallback (hqdefault) with an onerror handler.
 export function normalizeThumbnail(videoId) {
+  return "https://i.ytimg.com/vi/" + videoId + "/maxresdefault.jpg";
+}
+
+export function normalizeThumbnailFallback(videoId) {
   return "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg";
 }
 
@@ -127,6 +136,7 @@ export function pickVideos(entries) {
       url: normalizeWatchUrl(entry.videoId),
       published: new Date(publishedMs).toISOString(),
       thumbnail: normalizeThumbnail(entry.videoId),
+      thumbnailFallback: normalizeThumbnailFallback(entry.videoId),
     });
     if (out.length >= NEED) break;
   }
@@ -135,7 +145,7 @@ export function pickVideos(entries) {
 
 export function toPayload(videos) {
   if (!videos.length) return null;
-  return { latest: videos[0], more: videos.slice(1, 5) };
+  return { latest: videos[0], more: videos.slice(1, 1 + MORE) };
 }
 
 export async function fetchFeed(url, fetchImpl, cfCache) {
@@ -177,12 +187,73 @@ export async function loadVideos(fetchImpl, cfCache) {
   throw error;
 }
 
+const WATCH_HOST = /^(www\.)?youtube\.com$/;
+
+export function isVideoItem(item) {
+  if (!item || typeof item.title !== "string" || !item.title.trim()) return false;
+  if (!Number.isFinite(Date.parse(item.published))) return false;
+  try {
+    const url = new URL(item.url);
+    if (url.protocol !== "https:") return false;
+    if (!WATCH_HOST.test(url.hostname)) return false;
+    if (url.pathname !== "/watch") return false;
+    if (!VIDEO_ID_RE.test(url.searchParams.get("v") || "")) return false;
+    for (const key of ["thumbnail", "thumbnailFallback"]) {
+      if (key === "thumbnailFallback" && item[key] === undefined) continue;
+      const thumb = new URL(item[key]);
+      if (thumb.protocol !== "https:") return false;
+      if (thumb.hostname !== "i.ytimg.com") return false;
+      if (!/^\/vi\/[A-Za-z0-9_-]{11}\//.test(thumb.pathname)) return false;
+    }
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+export function isPayload(data) {
+  if (!data || !isVideoItem(data.latest) || !Array.isArray(data.more)) return false;
+  return data.more.every(isVideoItem);
+}
+
+export async function loadStaticPayload(fetchImpl, baseUrl) {
+  if (!fetchImpl || !baseUrl) return null;
+  try {
+    const res = await fetchImpl(new URL("/data/latest.json", baseUrl).href, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!isPayload(data)) return null;
+    return { latest: data.latest, more: data.more.slice(0, MORE) };
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveLatest(fetchImpl, options) {
+  const cfCache = Boolean(options && options.cfCache);
+  const baseUrl = options && options.baseUrl;
+  try {
+    const videos = await loadVideos(fetchImpl, cfCache);
+    const payload = toPayload(videos);
+    if (payload) return { payload, source: "feed", cacheSeconds: CACHE_SECONDS };
+  } catch {
+    // Use the committed static list when every live feed fails.
+  }
+  const fallback = await loadStaticPayload(fetchImpl, baseUrl);
+  if (fallback) return { payload: fallback, source: "static", cacheSeconds: 300 };
+  throw new Error("unavailable");
+}
+
 function jsonResponse(body, status, cacheSeconds) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, max-age=" + cacheSeconds,
+      // Browsers keep it 5 min, the edge keeps it cacheSeconds.
+      "cache-control": "public, max-age=300, s-maxage=" + cacheSeconds,
     },
   });
 }
@@ -205,10 +276,11 @@ export async function onRequest(context) {
   }
 
   try {
-    const videos = await loadVideos(fetch, true);
-    const payload = toPayload(videos);
-    if (!payload) return jsonResponse({ error: "no videos" }, 502, 60);
-    const response = jsonResponse(payload, 200, CACHE_SECONDS);
+    const resolved = await resolveLatest(fetch, {
+      cfCache: true,
+      baseUrl: new URL(context.request.url).origin,
+    });
+    const response = jsonResponse(resolved.payload, 200, resolved.cacheSeconds);
     if (edgeCache) {
       context.waitUntil(edgeCache.put(CACHE_KEY, response.clone()));
     }
