@@ -38,39 +38,57 @@
     return { missed: missed, text: missed ? "新影片準備中" : "下一部長片：" + label(next) };
   }
 
-  var KNOWN_GAMES = ["Project Zomboid", "Don't Starve Together", "Core Keeper", "The Forest", "RAFT", "Green Hell", "Forewarned", "Fargone", "The Walking Trade", "VEIN", "PEAK", "Zombie Graveyard Simulator", "Last Pirates"];
+  // Game list lives in games.js (window.PW_GAMES in the browser, require() in Node tests).
+  var GAMES = (typeof module === "object" && module.exports) ? require("./games.js") : ((typeof self !== "undefined" && self.PW_GAMES) || []);
 
   function normSpace(text) {
     return String(text || "").replace(/\s+/g, " ").trim();
   }
+  // Comparison key: NFKC (full-width → half-width), lower case, single spaces. Exact keys only, no substrings.
+  function gameKey(text) {
+    var s = normSpace(text);
+    if (s.normalize) s = s.normalize("NFKC");
+    return normSpace(s).toLowerCase();
+  }
+
+  var BY_KEY = {};
+  GAMES.forEach(function (g) {
+    [g.name, g.search].concat(g.aliases || []).forEach(function (n) {
+      var k = gameKey(n);
+      if (k && !BY_KEY[k]) BY_KEY[k] = g;
+    });
+  });
+
+  // The game whose name, search name or alias is exactly this text, else null.
+  function findGame(text) {
+    return BY_KEY[gameKey(text)] || null;
+  }
 
   // Phrase match with Latin word boundaries (CJK has no spaces, so a found substring counts).
   function containsPhrase(hay, needle) {
-    hay = normSpace(hay).toLowerCase();
-    needle = normSpace(needle).toLowerCase();
+    hay = gameKey(hay);
+    needle = gameKey(needle);
     if (!hay || !needle) return false;
-    if (hay === needle) return true;
-    var i = hay.indexOf(needle);
-    if (i === -1) return false;
-    var before = i === 0 || !/[A-Za-z0-9]/.test(hay.charAt(i - 1));
-    var after = i + needle.length === hay.length || !/[A-Za-z0-9]/.test(hay.charAt(i + needle.length));
-    return before && after;
-  }
-
-  function knownGameIn(text) {
-    var best = "";
-    for (var i = 0; i < KNOWN_GAMES.length; i++) {
-      var name = KNOWN_GAMES[i];
-      if (containsPhrase(text, name) && name.length > best.length) best = name;
+    var from = 0, i;
+    while ((i = hay.indexOf(needle, from)) !== -1) {
+      var before = i === 0 || !/[a-z0-9]/.test(hay.charAt(i - 1));
+      var after = i + needle.length === hay.length || !/[a-z0-9]/.test(hay.charAt(i + needle.length));
+      if (before && after) return true;
+      from = i + 1;
     }
-    return best;
+    return false;
   }
 
-  // Trailing Latin-script run: "殭屍毀滅工程 Project Zomboid" → "Project Zomboid". No match if the text ends in CJK.
-  function trailingLatin(text) {
-    var m = normSpace(text).match(/[A-Za-z0-9][A-Za-z0-9 .:'&+\-!']*$/);
-    if (!m || !/[A-Za-z]/.test(m[0])) return "";
-    return m[0].replace(/[ .:'&+\-!']+$/g, "").trim();
+  // Only for titles with no 《》: the longest listed name found in the title wins,
+  // so "Where the forest ends" beats "The Forest".
+  var PHRASES = [];
+  GAMES.forEach(function (g) {
+    [g.name, g.search].concat(g.aliases || []).forEach(function (n) { if (normSpace(n)) PHRASES.push({ text: n, game: g }); });
+  });
+  PHRASES.sort(function (a, b) { return gameKey(b.text).length - gameKey(a.text).length; });
+  function listedGameIn(text) {
+    for (var i = 0; i < PHRASES.length; i++) if (containsPhrase(text, PHRASES[i].text)) return PHRASES[i].game;
+    return null;
   }
 
   function bracketTexts(title) {
@@ -83,63 +101,61 @@
     return out;
   }
 
-  // English name for a chip search link: known game, else the trailing Latin part, else the whole 《》 text.
+  var CJK = /[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]/;
+  // English part of a 《》 name for the search link, for games not in games.js.
+  // "刺客任務 3 Hitman 3" → "Hitman 3", "Windrose 風啟之旅" → "Windrose", "純中文遊戲" → "純中文遊戲".
   function englishGameName(bracket) {
     var text = normSpace(bracket);
     if (!text) return "";
-    return knownGameIn(text) || trailingLatin(text) || text;
+    var g = findGame(text);
+    if (g) return g.search || g.name;
+    var parts = text.split(CJK).map(normSpace).filter(function (p) { return /[A-Za-z]/.test(p); });
+    if (!parts.length) return text;
+    var m = parts[parts.length - 1].match(/[A-Za-z][A-Za-z0-9 .:'’&+!\-]*$/);
+    if (!m) return text;
+    return normSpace(m[0].replace(/[\s.:'’&+!\-]+$/, ""));
   }
 
-  // Game tag for a card: the first 《...》 part of the title, else a known game name found in the title, else ""
+  // Card tag: the first 《》 (mapped to its listed name if known), else a listed game in the title, else "".
   function gameFromTitle(title) {
     var brackets = bracketTexts(title);
-    if (brackets.length) return brackets[0];
-    return knownGameIn(title);
+    if (brackets.length) {
+      var g = findGame(brackets[0]);
+      return g ? g.name : brackets[0];
+    }
+    var hit = listedGameIn(title);
+    return hit ? hit.name : "";
   }
 
-  // One chip candidate from a long-video title. Videos with no 《》 return null.
-  // If a title has several 《》, prefer a known game, then one with Latin, then the last bracket
-  // (so "金字塔版《恐鬼症》…|《Forewarned》" resolves to Forewarned, not 恐鬼症).
+  // Chip candidate: always the FIRST 《》 (titles start with 《Game》 since the Nov 2026 retitle).
+  // Other 《》 later in a title (a comparison game, 《怪奇物語》, …) never decide the chip.
   function gameChipFromTitle(title) {
     var brackets = bracketTexts(title);
     if (!brackets.length) return null;
-    var chips = brackets.map(function (b) { return { label: b, query: englishGameName(b) }; });
-    for (var i = 0; i < chips.length; i++) {
-      if (knownGameIn(chips[i].query) || knownGameIn(chips[i].label)) return chips[i];
-    }
-    for (var j = 0; j < chips.length; j++) {
-      if (/[A-Za-z]/.test(chips[j].query)) return chips[j];
-    }
-    return chips[chips.length - 1];
+    var g = findGame(brackets[0]);
+    if (g) return { label: g.name, query: g.search || g.name, listed: true };
+    return { label: brackets[0], query: englishGameName(brackets[0]), listed: false };
   }
 
-  function chipAlreadyListed(game, keys) {
-    if (!game) return true;
-    var needles = [game.query, game.label];
-    for (var i = 0; i < needles.length; i++) {
-      var n = normSpace(needles[i]);
-      if (!n) continue;
-      for (var j = 0; j < (keys || []).length; j++) {
-        var k = normSpace(keys[j]);
-        if (!k) continue;
-        if (containsPhrase(k, n) || containsPhrase(n, k)) return true;
-      }
-    }
-    return false;
-  }
-
-  // titles are newest first. existingKeys are current chip labels and search queries.
-  // Returns new games in that same newest-first order, with no duplicates.
+  // titles are newest first. existingKeys are extra labels/queries already on the page (exact match).
+  // Returns games that are NOT in games.js and not on the page, newest first, no duplicates.
   function newGamesFromTitles(titles, existingKeys) {
-    var keys = (existingKeys || []).slice();
+    var seen = {};
+    (existingKeys || []).forEach(function (k) { seen[gameKey(k)] = true; });
     var out = [];
     for (var i = 0; i < (titles || []).length; i++) {
       var game = gameChipFromTitle(titles[i]);
-      if (!game || chipAlreadyListed(game, keys)) continue;
-      out.push(game);
-      keys.push(game.query, game.label);
+      if (!game || game.listed) continue;
+      var lk = gameKey(game.label), qk = gameKey(game.query);
+      if (seen[lk] || seen[qk]) continue;
+      out.push({ label: game.label, query: game.query });
+      seen[lk] = seen[qk] = true;
     }
     return out;
+  }
+
+  function chipGames() {
+    return GAMES.filter(function (g) { return g.chip; });
   }
 
   function videoId(url) {
@@ -169,5 +185,5 @@
   function slidesHTML(items) { return items.slice(0, 3).map(slideHTML).join("\n"); }
   function cardsHTML(items) { return items.map(cardHTML).join("\n"); }
 
-  return { esc: esc, slidesHTML: slidesHTML, cardsHTML: cardsHTML, sgtDay: sgtDay, dayNum: dayNum, formatMD: formatMD, nextLongVideo: nextLongVideo, gameFromTitle: gameFromTitle, englishGameName: englishGameName, gameChipFromTitle: gameChipFromTitle, newGamesFromTitles: newGamesFromTitles, videoId: videoId, KNOWN_GAMES: KNOWN_GAMES };
+  return { esc: esc, slidesHTML: slidesHTML, cardsHTML: cardsHTML, sgtDay: sgtDay, dayNum: dayNum, formatMD: formatMD, nextLongVideo: nextLongVideo, gameFromTitle: gameFromTitle, englishGameName: englishGameName, gameChipFromTitle: gameChipFromTitle, newGamesFromTitles: newGamesFromTitles, findGame: findGame, chipGames: chipGames, videoId: videoId, GAMES: GAMES };
 });

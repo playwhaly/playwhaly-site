@@ -12,65 +12,64 @@ assert.equal(PW.sgtDay("2026-11-06T10:45:37.000Z"), "2026-11-06");
 assert.equal(PW.sgtDay("2026-11-06T17:00:00.000Z"), "2026-11-07", "UTC evening is next day in SGT");
 assert.equal(PW.formatMD("2026-10-23T10:45:19.000Z"), "10月23日");
 assert.equal(PW.gameFromTitle("《Core Keeper 核心守護者》從零開始！"), "Core Keeper 核心守護者");
-assert.equal(PW.gameFromTitle("我們快餓死了 | 饑荒聯機版 Don't Starve Together 搞笑片段精華 EP.8"), "Don't Starve Together");
+assert.equal(PW.gameFromTitle("我們快餓死了 | 饑荒聯機版 Don't Starve Together 搞笑片段精華 EP.8"), "饑荒聯機版 Don't Starve Together", "no 《》: listed name found in the title");
 assert.equal(PW.gameFromTitle("沒有遊戲名的標題"), "");
 assert.equal(PW.gameFromTitle("《測試遊戲 Test Game》開場測試"), "測試遊戲 Test Game", "new games keep the full 《》 text on card tags");
 assert.equal(PW.gameFromTitle("《陰森 The Forest》這根本是恐怖遊戲！"), "陰森 The Forest");
+assert.equal(PW.gameFromTitle("《麥塊 Minecraft》舊名"), "當個創世神 Minecraft", "aliases map to the current name");
 assert.equal(PW.videoId("https://www.youtube.com/watch?v=gkBtjBj17FM"), "gkBtjBj17FM");
 
+// Bug 1: "Where the forest ends" must not become The Forest
+assert.equal(PW.gameFromTitle("《森林盡頭 Where the forest ends》第一集"), "森林盡頭 Where the forest ends");
+assert.equal(PW.gameChipFromTitle("《森林盡頭 Where the forest ends》第一集").query, "Where the forest ends");
+assert.equal(PW.gameFromTitle("沒有括號 Where the forest ends 好玩"), "森林盡頭 Where the forest ends", "longest listed name wins");
+assert.equal(PW.englishGameName("森林盡頭 Where the forest ends"), "Where the forest ends");
+
+// Bug 2: a second 《》 (Project Zomboid) must not swallow the first game
+const humanitzOld = "這是關於我的《HumanitZ》殭屍遊戲體驗！一款連《殭屍毀滅工程 Project Zomboid》官方都極力推薦的殭屍遊戲！";
+assert.equal(PW.gameChipFromTitle(humanitzOld).label, "HumanitZ");
+assert.equal(PW.gameFromTitle(humanitzOld), "HumanitZ");
+assert.deepEqual(PW.newGamesFromTitles(["《全新殭屍遊戲 New Zed》比《殭屍毀滅工程 Project Zomboid》還難"]), [{ label: "全新殭屍遊戲 New Zed", query: "New Zed" }]);
+assert.equal(PW.gameChipFromTitle("《Forewarned》金字塔版《恐鬼症》").label, "Forewarned");
+assert.equal(PW.gameChipFromTitle("這小鎮不對勁！《怪奇鎮生存指南 I Hate This Place》彷彿闖入《怪奇物語》").label, "怪奇鎮生存指南 I Hate This Place");
+
+// English search names: no stray leading numbers or Chinese
 assert.equal(PW.englishGameName("殭屍毀滅工程 Project Zomboid"), "Project Zomboid");
-assert.equal(PW.englishGameName("島嶼生存者 The Survivalists"), "The Survivalists");
+assert.equal(PW.englishGameName("刺客任務 3 Hitman 3"), "Hitman 3");
+assert.equal(PW.englishGameName("新作 7 Some Game 7"), "Some Game 7");
+assert.equal(PW.englishGameName("Windrose 風啟之旅"), "Windrose");
+assert.equal(PW.englishGameName("Neo Game 新遊戲"), "Neo Game");
 assert.equal(PW.englishGameName("測試遊戲 Test Game"), "Test Game");
-assert.equal(PW.englishGameName("Core Keeper 核心守護者"), "Core Keeper");
-assert.equal(PW.englishGameName("RAFT 筏上求生"), "RAFT");
-assert.equal(PW.englishGameName("陰森 The Forest"), "The Forest");
-assert.equal(PW.englishGameName("Fargone"), "Fargone");
 assert.equal(PW.englishGameName("純中文遊戲"), "純中文遊戲");
-assert.equal(PW.englishGameName("Don't Starve Together"), "Don't Starve Together");
 assert.equal(PW.englishGameName("Last Pirates: Die Together"), "Last Pirates");
 
-const existing = [
-  "Project Zomboid", "VEIN", "島嶼生存者 The Survivalists", "The Survivalists",
-  "Core Keeper", "The Forest", "Don't Starve Together", "RAFT 筏上求生", "RAFT",
-  "Zombie Graveyard Simulator", "Green Hell", "Forewarned", "Fargone",
-  "The Walking Trade", "Last Pirates: Die Together", "Last Pirates", "PEAK",
-];
+// Listed games (chip or not) are never auto-added; unknown ones are, newest first, no duplicates
 const liveTitles = [
-  "《島嶼生存者 The Survivalists》從零開始的猴島求生！",
-  "《Core Keeper 核心守護者》從零開始！我們一路打敗所有BOSS！",
-  "《陰森 The Forest》這根本是恐怖遊戲！揭開尋子的殘酷真相！",
-  "我們快餓死了，闖入的陌生人居然幫忙蓋家？ | 饑荒聯機版 Don't Starve Together 搞笑片段精華 EP.8",
-  "《殭屍毀滅工程 Project Zomboid》B42全新探索！玫木鎮居然變這樣了",
-  "我們的《RAFT 筏上求生》六十二天極限生存記！這是一場從四塊木板開始的海上大冒險！",
-  "我把一座破墓園經營成殭屍也攻不破！《殭屍墓園模擬器 Zombie Graveyard Simulator》",
+  "靠猴子自動化生存！《島嶼生存者 The Survivalists》開荒到通關全紀錄！",
+  "《Core Keeper 核心守護者》玩到最後才發現…這遊戲根本停不下來！",
+  "我們的《RAFT 筏上求生》六十二天極限生存記！",
+  "《合力攻頂 PEAK》玩到絕交！",
 ];
-assert.deepEqual(PW.newGamesFromTitles(liveTitles, existing), [], "live feed games are already in the baseline");
-
-const withNew = ["《測試遊戲 Test Game》開場測試"].concat(liveTitles);
-const added = PW.newGamesFromTitles(withNew, existing);
-assert.equal(added.length, 1);
-assert.equal(added[0].label, "測試遊戲 Test Game");
-assert.equal(added[0].query, "Test Game");
-
+assert.deepEqual(PW.newGamesFromTitles(liveTitles), []);
+assert.deepEqual(
+  PW.newGamesFromTitles(["《測試遊戲 Test Game》開場", "《另一款遊戲 Other Game》也很新", "《測試遊戲 Test Game》再一集"].concat(liveTitles)),
+  [{ label: "測試遊戲 Test Game", query: "Test Game" }, { label: "另一款遊戲 Other Game", query: "Other Game" }],
+);
+assert.deepEqual(PW.newGamesFromTitles(["《測試遊戲 Test Game》"], ["Test Game"]), [], "existing page keys are exact-matched");
 assert.equal(PW.gameChipFromTitle("沒有括號的 Don't Starve Together 標題"), null, "no 《》 means no new chip");
-assert.deepEqual(
-  PW.gameChipFromTitle("金字塔版《恐鬼症》竟然能瘋狂搞隊友！|《Forewarned》"),
-  { label: "Forewarned", query: "Forewarned" },
-  "prefer the known game when a title has two 《》",
-);
-assert.deepEqual(
-  PW.newGamesFromTitles([
-    "《測試遊戲 Test Game》開場",
-    "《另一款遊戲 Other Game》也很新",
-    "《測試遊戲 Test Game》再一集",
-    "這絕對是一款超破壞友誼的恐怖遊戲！金字塔版《恐鬼症》竟然能瘋狂搞隊友！|《Forewarned》",
-  ], existing),
-  [
-    { label: "測試遊戲 Test Game", query: "Test Game" },
-    { label: "另一款遊戲 Other Game", query: "Other Game" },
-  ],
-  "newest first, no duplicates, Forewarned already listed",
-);
+
+// Every long-form title on the channel (Nov 2026 retitle) maps to a listed game, with its exact 《》 name
+const fx = createRequire(import.meta.url)("./fixtures/long-titles-2026-11.json");
+for (const v of fx) {
+  const b = (v.title.match(/《([^》]+)》/) || [])[1];
+  if (!b) continue;
+  assert.ok(PW.findGame(b), "games.js is missing: " + b);
+  assert.equal(PW.gameFromTitle(v.title), b.trim(), "tag for " + v.id);
+}
+assert.deepEqual(PW.newGamesFromTitles(fx.map((v) => v.title)), [], "no surprise auto chips from the back catalogue");
+const names = PW.GAMES.map((g) => g.name);
+assert.equal(new Set(names).size, names.length, "no duplicate names in games.js");
+assert.equal(PW.chipGames()[0].name, "殭屍毀滅工程 Project Zomboid");
 
 const xssTitle = '《<script>alert(1)</script> Evil Game》危險標題';
 assert.equal(PW.gameFromTitle(xssTitle), '<script>alert(1)</script> Evil Game');

@@ -92,6 +92,9 @@
     renderGameChips();
   }
 
+  // Games not in games.js that appear in the newest uploads are added up to this many chips. Edit names in games.js.
+  var MAX_AUTO_CHIPS = 3;
+
   /* Prepend games found in the latest long-video titles that are not already in the hardcoded chips/marquee.
      The 14 chips in the HTML stay as the no-JS / API-failure baseline. New nodes use textContent, never raw innerHTML. */
   var PAW = '<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="6.2" ry="5"/><circle cx="4.8" cy="8.6" r="2.15"/><circle cx="9" cy="5.8" r="2.35"/><circle cx="15.2" cy="5.8" r="2.35"/><circle cx="19.2" cy="8.6" r="2.15"/></svg>';
@@ -149,7 +152,7 @@
     var chips = document.querySelector("#games .chips");
     var track = document.querySelector(".marquee-track");
     if (!chips) return;
-    var added = PW.newGamesFromTitles(videos.map(function (v) { return v.title; }), chipKeys(chips));
+    var added = PW.newGamesFromTitles(videos.map(function (v) { return v.title; }), chipKeys(chips)).slice(0, MAX_AUTO_CHIPS);
     if (!added.length) return;
     var chipSvg = chips.querySelector("a.chip");
     var markSvg = track && track.querySelector("span");
