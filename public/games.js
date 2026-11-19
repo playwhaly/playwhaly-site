@@ -20,7 +20,7 @@
     // ---- Chips, in page order (recent + popular first) ----
     { name: "殭屍毀滅工程 Project Zomboid", search: "Project Zomboid", chip: true, main: true },
     { name: "島嶼生存者 The Survivalists", search: "The Survivalists", chip: true },
-    { name: "Core Keeper 核心守護者", search: "Core Keeper", chip: true },
+    { name: "核心守護者 Core Keeper", search: "Core Keeper", chip: true, aliases: ["Core Keeper 核心守護者"] }, // Bahamut ACG 123188 + GNN
     { name: "陰森 The Forest", search: "The Forest", chip: true },
     { name: "饑荒聯機版 Don't Starve Together", search: "Don't Starve Together", chip: true },
     { name: "VEIN", search: "VEIN", chip: true },
@@ -38,9 +38,9 @@
     { name: "Fargone", search: "Fargone", chip: true },
 
     // ---- Known games, no chip (card tags still use these names; never auto-added) ----
-    { name: "RAFT 筏上求生", search: "RAFT", aliases: ["RAFT"] },
+    { name: "筏上求生 Raft", search: "Raft", aliases: ["RAFT 筏上求生", "RAFT"] }, // Bahamut ACG 87685, board 34715, GNN
     { name: "殭屍墓園模擬器 Zombie Graveyard Simulator", search: "Zombie Graveyard Simulator" },
-    { name: "Green Hell 綠色地獄", search: "Green Hell", aliases: ["Green Hell"] },
+    { name: "綠色地獄 Green Hell", search: "Green Hell", aliases: ["Green Hell 綠色地獄", "Green Hell"] }, // Bahamut board 37386 綠色地獄
     { name: "Forewarned", search: "Forewarned" },
     { name: "合力攻頂 PEAK", search: "PEAK", aliases: ["PEAK"] },
     { name: "Dreadway", search: "Dreadway" },
@@ -48,7 +48,7 @@
     { name: "刺客任務 3 Hitman 3", search: "Hitman 3" },
     { name: "森林盡頭 Where the forest ends", search: "Where the forest ends" },
     { name: "Infected Dawn", search: "Infected Dawn" },
-    { name: "Windrose 風啟之旅", search: "Windrose" },
+    { name: "風啟之旅 Windrose", search: "Windrose", aliases: ["Windrose 風啟之旅"] }, // Bahamut ACG 149928 + GNN
     { name: "生存者：隱形病毒 Survivalist: Invisible Strain", search: "Survivalist: Invisible Strain" },
     { name: "求生巴士 BUS: Bro U Survived", search: "BUS: Bro U Survived" },
     { name: "泰拉瑞亞 Terraria", search: "Terraria" },
@@ -91,7 +91,7 @@
     { name: "死亡回歸 Returnal", search: "Returnal" },
     { name: "絕命精神病院 2 Outlast 2", search: "Outlast 2" },
     { name: "惡靈古堡 8 Resident Evil Village", search: "Resident Evil Village" },
-    { name: "破門 Breaking Gates", search: "Breaking Gates", aliases: ["Breaking Gates 破門而出"] }, // Steam tchinese name (appid 1248550),
+    { name: "破門 Breaking Gates", search: "Breaking Gates", aliases: ["Breaking Gates 破門而出"] }, // Steam TW tchinese name (appid 1248550); not on Bahamut,
     { name: "黑暗靈魂 1 Dark Souls 1", search: "Dark Souls" },
     { name: "古墓奇兵：歐西里斯神殿 Lara Croft and the Temple of Osiris", search: "Temple of Osiris" },
     { name: "蹩腳的攀岩者 Crappy Climber", search: "Crappy Climber" },

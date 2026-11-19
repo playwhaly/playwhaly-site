@@ -11,7 +11,7 @@ assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-12-04" }).text, "下一部�
 assert.equal(PW.sgtDay("2026-11-06T10:45:37.000Z"), "2026-11-06");
 assert.equal(PW.sgtDay("2026-11-06T17:00:00.000Z"), "2026-11-07", "UTC evening is next day in SGT");
 assert.equal(PW.formatMD("2026-10-23T10:45:19.000Z"), "10月23日");
-assert.equal(PW.gameFromTitle("《Core Keeper 核心守護者》從零開始！"), "Core Keeper 核心守護者");
+assert.equal(PW.gameFromTitle("《Core Keeper 核心守護者》從零開始！"), "核心守護者 Core Keeper", "old label maps to the Bahamut name");
 assert.equal(PW.gameFromTitle("我們快餓死了 | 饑荒聯機版 Don't Starve Together 搞笑片段精華 EP.8"), "饑荒聯機版 Don't Starve Together", "no 《》: listed name found in the title");
 assert.equal(PW.gameFromTitle("沒有遊戲名的標題"), "");
 assert.equal(PW.gameFromTitle("《測試遊戲 Test Game》開場測試"), "測試遊戲 Test Game", "new games keep the full 《》 text on card tags");
