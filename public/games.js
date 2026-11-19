@@ -91,7 +91,7 @@
     { name: "死亡回歸 Returnal", search: "Returnal" },
     { name: "絕命精神病院 2 Outlast 2", search: "Outlast 2" },
     { name: "惡靈古堡 8 Resident Evil Village", search: "Resident Evil Village" },
-    { name: "Breaking Gates 破門而出", search: "Breaking Gates" },
+    { name: "破門 Breaking Gates", search: "Breaking Gates", aliases: ["Breaking Gates 破門而出"] }, // Steam tchinese name (appid 1248550),
     { name: "黑暗靈魂 1 Dark Souls 1", search: "Dark Souls" },
     { name: "古墓奇兵：歐西里斯神殿 Lara Croft and the Temple of Osiris", search: "Temple of Osiris" },
     { name: "蹩腳的攀岩者 Crappy Climber", search: "Crappy Climber" },

@@ -63,13 +63,17 @@ const fx = createRequire(import.meta.url)("./fixtures/long-titles-2026-11.json")
 for (const v of fx) {
   const b = (v.title.match(/《([^》]+)》/) || [])[1];
   if (!b) continue;
-  assert.ok(PW.findGame(b), "games.js is missing: " + b);
-  assert.equal(PW.gameFromTitle(v.title), b.trim(), "tag for " + v.id);
+  const g = PW.findGame(b);
+  assert.ok(g, "games.js is missing: " + b);
+  assert.ok(g.name === b.trim() || (g.aliases || []).includes(b.trim()), "exact name or listed old name: " + b);
+  assert.equal(PW.gameFromTitle(v.title), g.name, "tag for " + v.id);
 }
 assert.deepEqual(PW.newGamesFromTitles(fx.map((v) => v.title)), [], "no surprise auto chips from the back catalogue");
 const names = PW.GAMES.map((g) => g.name);
 assert.equal(new Set(names).size, names.length, "no duplicate names in games.js");
 assert.equal(PW.chipGames()[0].name, "殭屍毀滅工程 Project Zomboid");
+assert.equal(PW.gameFromTitle("《Breaking Gates 破門而出》舊標題"), "破門 Breaking Gates", "old label still maps after the rename");
+assert.equal(PW.gameFromTitle("《破門 Breaking Gates》新標題"), "破門 Breaking Gates");
 
 const xssTitle = '《<script>alert(1)</script> Evil Game》危險標題';
 assert.equal(PW.gameFromTitle(xssTitle), '<script>alert(1)</script> Evil Game');
