@@ -27,10 +27,10 @@ assert.equal(PW.englishGameName("森林盡頭 Where the forest ends"), "Where th
 
 // Bug 2: a second 《》 (Project Zomboid) must not swallow the first game
 const humanitzOld = "這是關於我的《HumanitZ》殭屍遊戲體驗！一款連《殭屍毀滅工程 Project Zomboid》官方都極力推薦的殭屍遊戲！";
-assert.equal(PW.gameChipFromTitle(humanitzOld).label, "HumanitZ");
-assert.equal(PW.gameFromTitle(humanitzOld), "HumanitZ");
+assert.equal(PW.gameChipFromTitle(humanitzOld).label, "人道主義 Z HumanitZ");
+assert.equal(PW.gameFromTitle(humanitzOld), "人道主義 Z HumanitZ");
 assert.deepEqual(PW.newGamesFromTitles(["《全新殭屍遊戲 New Zed》比《殭屍毀滅工程 Project Zomboid》還難"]), [{ label: "全新殭屍遊戲 New Zed", query: "New Zed" }]);
-assert.equal(PW.gameChipFromTitle("《Forewarned》金字塔版《恐鬼症》").label, "Forewarned");
+assert.equal(PW.gameChipFromTitle("《Forewarned》金字塔版《恐鬼症》").label, "預先警告 Forewarned");
 assert.equal(PW.gameChipFromTitle("這小鎮不對勁！《怪奇鎮生存指南 I Hate This Place》彷彿闖入《怪奇物語》").label, "怪奇鎮生存指南 I Hate This Place");
 
 // English search names: no stray leading numbers or Chinese
@@ -95,3 +95,13 @@ assert.equal(html.includes('<span class="game" title="測試遊戲 Test Game">�
 assert.equal(html.includes("<script>"), false);
 
 console.log("all lib tests passed");
+
+// Whisper Mountain Outbreak is listed (not auto-added); Bahamut colon form maps too
+assert.equal(PW.gameFromTitle("把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音擴散 Whisper Mountain Outbreak》"), "鬼山魔音擴散 Whisper Mountain Outbreak");
+assert.equal(PW.gameFromTitle("《鬼山魔音：擴散 Whisper Mountain Outbreak》"), "鬼山魔音擴散 Whisper Mountain Outbreak");
+assert.deepEqual(PW.newGamesFromTitles(["把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音擴散 Whisper Mountain Outbreak》"]), []);
+// old English-only labels still map to the Chinese-first names
+for (const [oldT, want] of [["《SUNKENLAND 沉沒之地》", "沉沒之地 Sunkenland"], ["《Species: Unknown》", "物種：未知 Species: Unknown"], ["《The Walking Trade》", "喪屍交易所 The Walking Trade"], ["《Fargone》", "遙遠之地 Fargone"], ["《Dreadway》", "恐懼之路 Dreadway"], ["《沉沒之地 Sunkenland》", "沉沒之地 Sunkenland"]]) {
+  assert.equal(PW.gameFromTitle(oldT + "測試"), want, oldT);
+}
+console.log("all lib tests passed (names)");

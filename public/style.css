@@ -165,8 +165,8 @@ footer{margin-top:2rem;padding:.8rem 1rem;border-radius:14px;background:rgba(255
 .intro .next svg{flex:none;color:var(--accent);opacity:.85}
 
 /* Twitch social tile */
-.social-twitch strong{display:flex;align-items:center;gap:.4rem}
-.social-twitch .tw{flex:none}
+.social strong{display:flex;align-items:center;gap:.4rem}
+.social strong svg{flex:none}
 .social-twitch:hover{border-color:#9146FF;box-shadow:0 8px 18px rgba(145,70,255,.22)}
 /* LIVE NOW banner: only shown while live (hidden by default via the hidden attribute) */
 .live-banner[hidden]{display:none!important}

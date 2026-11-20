@@ -73,7 +73,7 @@ function mockFetch(handlers) {
 }
 
 assert.equal(isPayload(staticJson), true, "committed JSON is a valid payload");
-assert.equal(staticJson.latest.url, "https://www.youtube.com/watch?v=gkBtjBj17FM");
+assert.equal(staticJson.latest.url, "https://www.youtube.com/watch?v=RLLBnHS3gZo");
 assert.equal(staticJson.more.length, 9);
 
 const parsed = parseFeed(sampleXml);

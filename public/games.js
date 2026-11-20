@@ -19,35 +19,36 @@
   return [
     // ---- Chips, in page order (recent + popular first) ----
     { name: "殭屍毀滅工程 Project Zomboid", search: "Project Zomboid", chip: true, main: true },
+    { name: "鬼山魔音擴散 Whisper Mountain Outbreak", search: "Whisper Mountain Outbreak", chip: true, aliases: ["鬼山魔音：擴散 Whisper Mountain Outbreak"] }, // newest upload 20 Nov 2026; Steam TW name (Bahamut ACG 129686 writes 鬼山魔音：擴散)
     { name: "島嶼生存者 The Survivalists", search: "The Survivalists", chip: true },
     { name: "核心守護者 Core Keeper", search: "Core Keeper", chip: true, aliases: ["Core Keeper 核心守護者"] }, // Bahamut ACG 123188 + GNN
     { name: "陰森 The Forest", search: "The Forest", chip: true },
     { name: "饑荒聯機版 Don't Starve Together", search: "Don't Starve Together", chip: true },
-    { name: "VEIN", search: "VEIN", chip: true },
+    { name: "VEIN", search: "VEIN", chip: true }, // no Chinese name anywhere (Bahamut ACG 147907 / board 83955, Steam, 3DM, Gamersky all "VEIN")
     { name: "恐鬼症 Phasmophobia", search: "Phasmophobia", chip: true, aliases: ["恐懼症 Phasmophobia", "恐鬼症", "恐懼症"] },
     { name: "怪奇鎮生存指南 I Hate This Place", search: "I Hate This Place", chip: true },
     { name: "星露谷 Stardew Valley", search: "Stardew Valley", chip: true, aliases: ["星露谷"] },
-    { name: "Species: Unknown", search: "Species: Unknown", chip: true },
+    { name: "物種：未知 Species: Unknown", search: "Species: Unknown", chip: true, aliases: ["Species: Unknown"] }, // Steam schinese description 物种：未知 + Bahamut posts; approved
     { name: "蝙蝠俠：阿卡漢瘋人院 Batman: Arkham Asylum", search: "Batman: Arkham Asylum", chip: true },
     { name: "夜族崛起 V Rising", search: "V Rising", chip: true, aliases: ["夜族崛起 V Rising 1.1版"] },
-    { name: "HumanitZ", search: "HumanitZ", chip: true },
-    { name: "SUNKENLAND 沉沒之地", search: "SUNKENLAND", chip: true },
+    { name: "人道主義 Z HumanitZ", search: "HumanitZ", chip: true, aliases: ["HumanitZ"] }, // Bahamut ACG 140517
+    { name: "沉沒之地 Sunkenland", search: "Sunkenland", chip: true, aliases: ["SUNKENLAND 沉沒之地"] }, // Bahamut board 78413 posts; approved
     { name: "當個創世神 Minecraft", search: "Minecraft", chip: true, aliases: ["麥塊 Minecraft"] },
     { name: "最後的海盜：無人生還 Last Pirates: Die Together", search: "Last Pirates", chip: true, aliases: ["Last Pirates: Die Together"] },
-    { name: "The Walking Trade", search: "The Walking Trade", chip: true },
-    { name: "Fargone", search: "Fargone", chip: true },
+    { name: "喪屍交易所 The Walking Trade", search: "The Walking Trade", chip: true, aliases: ["The Walking Trade"] }, // 3DM 丧尸交易所
+    { name: "遙遠之地 Fargone", search: "Fargone", chip: true, aliases: ["Fargone"] }, // xdgame / piggame 遥远之地
 
     // ---- Known games, no chip (card tags still use these names; never auto-added) ----
     { name: "筏上求生 Raft", search: "Raft", aliases: ["RAFT 筏上求生", "RAFT"] }, // Bahamut ACG 87685, board 34715, GNN
     { name: "殭屍墓園模擬器 Zombie Graveyard Simulator", search: "Zombie Graveyard Simulator" },
     { name: "綠色地獄 Green Hell", search: "Green Hell", aliases: ["Green Hell 綠色地獄", "Green Hell"] }, // Bahamut board 37386 綠色地獄
-    { name: "Forewarned", search: "Forewarned" },
+    { name: "預先警告 Forewarned", search: "Forewarned", aliases: ["Forewarned"] }, // gm44 / xdgame 预先警告
     { name: "合力攻頂 PEAK", search: "PEAK", aliases: ["PEAK"] },
-    { name: "Dreadway", search: "Dreadway" },
+    { name: "恐懼之路 Dreadway", search: "Dreadway", aliases: ["Dreadway"] }, // indienova 恐惧之路
     { name: "吞噬 Devour", search: "Devour" },
     { name: "刺客任務 3 Hitman 3", search: "Hitman 3" },
     { name: "森林盡頭 Where the forest ends", search: "Where the forest ends" },
-    { name: "Infected Dawn", search: "Infected Dawn" },
+    { name: "Infected Dawn", search: "Infected Dawn" }, // no Chinese name found anywhere
     { name: "風啟之旅 Windrose", search: "Windrose", aliases: ["Windrose 風啟之旅"] }, // Bahamut ACG 149928 + GNN
     { name: "生存者：隱形病毒 Survivalist: Invisible Strain", search: "Survivalist: Invisible Strain" },
     { name: "求生巴士 BUS: Bro U Survived", search: "BUS: Bro U Survived" },
