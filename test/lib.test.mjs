@@ -8,6 +8,11 @@ assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-11-20" }).text, "下一部�
 assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-11-21" }).text, "新影片準備中", "Saturday, no upload yet");
 assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-11-21", lastUpload: "2026-11-20" }).text, "下一部長片：12月4日（五）", "uploaded on time");
 assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-12-04" }).text, "下一部長片：12月4日（五）");
+// Bug: on the Friday evening after the upload is out it still said 11月20日
+assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-11-20", lastUpload: "2026-11-20" }).text, "下一部長片：12月4日（五）", "Friday, today's upload already out");
+assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-11-20", lastUpload: PW.sgtDay("2026-11-20T10:45:05.000Z") }).text, "下一部長片：12月4日（五）", "RLLBnHS3gZo at 6:45pm SGT");
+assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-11-25", lastUpload: "2026-11-20" }).text, "下一部長片：12月4日（五）", "mid-cycle after an on-time upload");
+assert.equal(PW.nextLongVideo({ ...cfg, today: "2026-12-04", lastUpload: "2026-11-20" }).text, "下一部長片：12月4日（五）", "next Friday before its upload");
 assert.equal(PW.sgtDay("2026-11-06T10:45:37.000Z"), "2026-11-06");
 assert.equal(PW.sgtDay("2026-11-06T17:00:00.000Z"), "2026-11-07", "UTC evening is next day in SGT");
 assert.equal(PW.formatMD("2026-10-23T10:45:19.000Z"), "10月23日");
@@ -97,8 +102,9 @@ assert.equal(html.includes("<script>"), false);
 console.log("all lib tests passed");
 
 // Whisper Mountain Outbreak is listed (not auto-added); Bahamut colon form maps too
-assert.equal(PW.gameFromTitle("把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音擴散 Whisper Mountain Outbreak》"), "鬼山魔音擴散 Whisper Mountain Outbreak");
-assert.equal(PW.gameFromTitle("《鬼山魔音：擴散 Whisper Mountain Outbreak》"), "鬼山魔音擴散 Whisper Mountain Outbreak");
+assert.equal(PW.gameFromTitle("把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音擴散 Whisper Mountain Outbreak》"), "鬼山魔音：擴散 Whisper Mountain Outbreak", "old title maps to the Bahamut name");
+assert.equal(PW.gameFromTitle("把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音：擴散 Whisper Mountain Outbreak》"), "鬼山魔音：擴散 Whisper Mountain Outbreak");
+assert.deepEqual(PW.newGamesFromTitles(["《鬼山魔音：擴散 Whisper Mountain Outbreak》"]), []);
 assert.deepEqual(PW.newGamesFromTitles(["把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音擴散 Whisper Mountain Outbreak》"]), []);
 // old English-only labels still map to the Chinese-first names
 for (const [oldT, want] of [["《SUNKENLAND 沉沒之地》", "沉沒之地 Sunkenland"], ["《Species: Unknown》", "物種：未知 Species: Unknown"], ["《The Walking Trade》", "喪屍交易所 The Walking Trade"], ["《Fargone》", "遙遠之地 Fargone"], ["《Dreadway》", "恐懼之路 Dreadway"], ["《沉沒之地 Sunkenland》", "沉沒之地 Sunkenland"]]) {

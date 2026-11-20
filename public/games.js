@@ -19,7 +19,7 @@
   return [
     // ---- Chips, in page order (recent + popular first) ----
     { name: "殭屍毀滅工程 Project Zomboid", search: "Project Zomboid", chip: true, main: true },
-    { name: "鬼山魔音擴散 Whisper Mountain Outbreak", search: "Whisper Mountain Outbreak", chip: true, aliases: ["鬼山魔音：擴散 Whisper Mountain Outbreak"] }, // newest upload 20 Nov 2026; Steam TW name (Bahamut ACG 129686 writes 鬼山魔音：擴散)
+    { name: "鬼山魔音：擴散 Whisper Mountain Outbreak", search: "Whisper Mountain Outbreak", chip: true, aliases: ["鬼山魔音擴散 Whisper Mountain Outbreak"] }, // Bahamut ACG 129686 + GNN; old Steam TW form kept as alias
     { name: "島嶼生存者 The Survivalists", search: "The Survivalists", chip: true },
     { name: "核心守護者 Core Keeper", search: "Core Keeper", chip: true, aliases: ["Core Keeper 核心守護者"] }, // Bahamut ACG 123188 + GNN
     { name: "陰森 The Forest", search: "The Forest", chip: true },

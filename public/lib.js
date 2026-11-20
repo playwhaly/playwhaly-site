@@ -30,10 +30,11 @@
   // Biweekly Friday schedule anchored on a known Friday (YYYY-MM-DD).
   // todayStr and lastUploadStr are YYYY-MM-DD in Asia/Singapore (lastUploadStr comes from the newest long video in the feed).
   // Shows "新影片準備中" when a scheduled Friday is more than 1 day behind us and no upload on or after it exists.
+  // Once a long video is out on or after the scheduled Friday (including that same evening), the next slot is shown.
   function nextLongVideo(o) {
     var today = dayNum(o.today), anchor = dayNum(o.anchor), last = dayNum(o.lastUpload), step = o.everyDays || 14;
     var recent = anchor + Math.floor((today - anchor) / step) * step;
-    var next = recent === today ? today : recent + step;
+    var next = recent === today && last < today ? today : recent + step;
     var missed = today >= recent + 1 && last < recent;
     return { missed: missed, text: missed ? "新影片準備中" : "下一部長片：" + label(next) };
   }
