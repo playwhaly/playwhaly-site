@@ -265,7 +265,8 @@ assert.equal(merged[0].claimUrl.startsWith("https://itch.io/"), true);
 assert.equal(merged[1].claimUrl.startsWith("https://store.epicgames.com/"), true);
 
 const rss = toRss({ games: merged }, "https://playwhaly.com");
-assert.equal(rss.includes("gamerpower"), false);
+assert.equal(/<link>https?:\/\/[^<]*gamerpower/i.test(rss), false, "RSS item links must not point at gamerpower");
+assert.equal(rss.includes("Data: GamerPower.com, Epic Games Store, GOG"), true);
 assert.equal(rss.includes("https://store.epicgames.com/zh-Hant/p/mark-of-the-deep-f7dc08"), true);
 assert.equal(rss.includes("<language>zh-Hant</language>"), true);
 
@@ -368,3 +369,23 @@ assert.equal(epicOnly.payload.games.length, 1);
 assert.equal(epicOnly.payload.attribution, false);
 
 console.log("all free-games tests passed");
+
+import { readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const homepage = await readFile(join(root, "public/index.html"), "utf8");
+assert.equal(homepage.includes("id=\"free-games-credit\""), false, "homepage must not show a GamerPower credit note");
+assert.equal(homepage.includes("部分資訊來源"), false);
+const terms = await readFile(join(root, "public/terms.html"), "utf8");
+const privacy = await readFile(join(root, "public/privacy.html"), "utf8");
+for (const [name, html] of [["terms", terms], ["privacy", privacy]]) {
+  assert.equal(html.includes("https://www.gamerpower.com/"), true, name + " should credit GamerPower.com");
+  assert.equal(html.includes('rel="noopener"'), true, name + " GamerPower link should use rel=noopener");
+  assert.equal(html.includes("Epic Games Store"), true, name + " should mention Epic Games Store");
+  assert.equal(html.includes("GOG"), true, name + " should mention GOG");
+  assert.equal(html.includes("限時免費領取"), true, name + " should mention the free-games list");
+}
+assert.equal(terms.includes("資料來源"), true);
+assert.equal(terms.includes("Data sources"), true);
+console.log("all free-games tests passed (legal credit)");

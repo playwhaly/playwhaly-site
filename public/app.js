@@ -268,8 +268,6 @@
       card.appendChild(claim);
       grid.appendChild(card);
     });
-    var credit = $("#free-games-credit");
-    if (credit) credit.hidden = payload.attribution !== true;
     section.hidden = false;
     observeReveals();
   }

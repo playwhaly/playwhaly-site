@@ -438,7 +438,7 @@ export function toRss(payload, origin) {
     '<rss version="2.0"><channel>' +
     "<title>" + esc("威利 Whaly｜限時免費領取") + "</title>" +
     "<link>" + esc(site + "/#free-games") + "</link>" +
-    "<description>" + esc("各商店目前限時免費、領了就能留下來的遊戲。") + "</description>" +
+    "<description>" + esc("各商店目前限時免費、領了就能留下來的遊戲。Data: GamerPower.com, Epic Games Store, GOG") + "</description>" +
     "<language>zh-Hant</language>" +
     items +
     "</channel></rss>"
