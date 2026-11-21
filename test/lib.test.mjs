@@ -111,3 +111,11 @@ for (const [oldT, want] of [["《SUNKENLAND 沉沒之地》", "沉沒之地 Sunk
   assert.equal(PW.gameFromTitle(oldT + "測試"), want, oldT);
 }
 console.log("all lib tests passed (names)");
+
+assert.equal(PW.formatEndsSGT("2026-11-26T16:00:00.000Z"), "11月27日（五）截止");
+var left = PW.remainingFree("2026-11-26T16:00:00.000Z", "2026-11-22T01:25:00+08:00");
+assert.equal(left.text, "剩 5 天");
+assert.equal(left.until, "11月27日（五）截止");
+assert.equal(PW.remainingFree("2026-11-22T10:00:00.000Z", "2026-11-22T01:00:00.000Z").text, "剩 9 小時");
+assert.equal(PW.remainingFree("2026-11-21T00:00:00.000Z", "2026-11-22T00:00:00.000Z"), null);
+console.log("all lib tests passed (free dates)");

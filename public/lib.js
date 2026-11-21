@@ -27,6 +27,28 @@
     return (d.getUTCMonth() + 1) + "月" + d.getUTCDate() + "日";
   }
 
+  function formatEndsSGT(endsAt) {
+    var n = dayNum(sgtDay(endsAt));
+    var d = new Date(n * DAY);
+    return (d.getUTCMonth() + 1) + "月" + d.getUTCDate() + "日（" + WD[d.getUTCDay()] + "）截止";
+  }
+
+  // Remaining time until a free-game offer ends. now may be a Date, an ISO string, or omitted (uses the clock).
+  // Returns null if the timestamp is missing or already over. Hours and days are rounded up.
+  function remainingFree(endsAt, now) {
+    var end = Date.parse(endsAt);
+    var t = now == null ? Date.now() : (now instanceof Date ? now.getTime() : Date.parse(now));
+    if (!isFinite(end) || !isFinite(t)) return null;
+    var ms = end - t;
+    if (ms <= 0) return null;
+    var hours = Math.ceil(ms / 3600000);
+    var days = Math.ceil(ms / 86400000);
+    var until = formatEndsSGT(endsAt);
+    if (hours < 24) return { text: "剩 " + hours + " 小時", until: until, hours: hours, days: 0 };
+    return { text: "剩 " + days + " 天", until: until, hours: hours, days: days };
+  }
+
+
   // Biweekly Friday schedule anchored on a known Friday (YYYY-MM-DD).
   // todayStr and lastUploadStr are YYYY-MM-DD in Asia/Singapore (lastUploadStr comes from the newest long video in the feed).
   // Shows "新影片準備中" when a scheduled Friday is more than 1 day behind us and no upload on or after it exists.
@@ -186,5 +208,5 @@
   function slidesHTML(items) { return items.slice(0, 3).map(slideHTML).join("\n"); }
   function cardsHTML(items) { return items.map(cardHTML).join("\n"); }
 
-  return { esc: esc, slidesHTML: slidesHTML, cardsHTML: cardsHTML, sgtDay: sgtDay, dayNum: dayNum, formatMD: formatMD, nextLongVideo: nextLongVideo, gameFromTitle: gameFromTitle, englishGameName: englishGameName, gameChipFromTitle: gameChipFromTitle, newGamesFromTitles: newGamesFromTitles, findGame: findGame, chipGames: chipGames, videoId: videoId, GAMES: GAMES };
+  return { esc: esc, slidesHTML: slidesHTML, cardsHTML: cardsHTML, sgtDay: sgtDay, dayNum: dayNum, formatMD: formatMD, formatEndsSGT: formatEndsSGT, remainingFree: remainingFree, nextLongVideo: nextLongVideo, gameFromTitle: gameFromTitle, englishGameName: englishGameName, gameChipFromTitle: gameChipFromTitle, newGamesFromTitles: newGamesFromTitles, findGame: findGame, chipGames: chipGames, videoId: videoId, GAMES: GAMES };
 });

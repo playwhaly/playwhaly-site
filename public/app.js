@@ -191,6 +191,93 @@
     })
     .catch(function () { renderNext(); }); // keep the baked-in fallback
 
+  /* ---- Limited-time free-to-claim games (/api/free-games). The section stays hidden if the list is empty or the request fails. ---- */
+  var STORE_HOST = /^(store\.epicgames\.com|www\.epicgames\.com|store\.steampowered\.com|www\.steampowered\.com|www\.gog\.com|gog\.com|itch\.io|freebies\.indiegala\.com|www\.indiegala\.com|indiegala\.com|store\.onstove\.com|www\.onstove\.com)$/;
+  function isClaimUrl(url) {
+    try {
+      var u = new URL(url);
+      if (u.protocol !== "https:") return false;
+      if (/gamerpower/i.test(u.hostname) || /gamerpower/i.test(u.href)) return false;
+      var host = u.hostname.toLowerCase();
+      return STORE_HOST.test(host) || /\.itch\.io$/.test(host);
+    } catch (e) { return false; }
+  }
+  function isFreePayload(d) {
+    return d && Array.isArray(d.games) && d.games.every(function (g) {
+      return g && typeof g.title === "string" && g.title.trim() && isClaimUrl(g.claimUrl) && isFinite(Date.parse(g.endsAt));
+    });
+  }
+  function renderFreeGames(payload) {
+    var section = $("#free-games");
+    var grid = $("#free-grid");
+    if (!section || !grid) return;
+    var games = payload.games.filter(function (g) { return PW.remainingFree(g.endsAt); });
+    if (!games.length) { section.hidden = true; return; }
+    grid.textContent = "";
+    games.forEach(function (game, i) {
+      var left = PW.remainingFree(game.endsAt);
+      var card = document.createElement("article");
+      card.className = "free-card reveal";
+      card.style.setProperty("--d", ((i % 3) * 0.1).toFixed(1) + "s");
+      if (game.image && /^https:\/\//.test(game.image)) {
+        var media = document.createElement("a");
+        media.className = "free-media";
+        media.href = game.claimUrl;
+        media.target = "_blank";
+        media.rel = "noopener";
+        media.setAttribute("tabindex", "-1");
+        var img = document.createElement("img");
+        img.src = game.image;
+        img.alt = game.title;
+        img.width = 1280;
+        img.height = 720;
+        img.loading = "lazy";
+        img.decoding = "async";
+        media.appendChild(img);
+        var badge = document.createElement("span");
+        badge.className = "free-store";
+        badge.textContent = game.kind === "bundle" ? (game.platform + " · 遊戲包") : game.platform;
+        media.appendChild(badge);
+        card.appendChild(media);
+      } else {
+        var badgeOnly = document.createElement("span");
+        badgeOnly.className = "free-store";
+        badgeOnly.style.position = "static";
+        badgeOnly.style.margin = "0 .35rem .5rem";
+        badgeOnly.textContent = game.kind === "bundle" ? (game.platform + " · 遊戲包") : game.platform;
+        card.appendChild(badgeOnly);
+      }
+      var title = document.createElement("h3");
+      title.className = "free-title";
+      title.textContent = game.title;
+      card.appendChild(title);
+      var remain = document.createElement("p");
+      remain.className = "free-left";
+      remain.textContent = left.text;
+      card.appendChild(remain);
+      var until = document.createElement("p");
+      until.className = "free-until";
+      until.textContent = left.until;
+      card.appendChild(until);
+      var claim = document.createElement("a");
+      claim.className = "btn btn-primary";
+      claim.href = game.claimUrl;
+      claim.target = "_blank";
+      claim.rel = "noopener";
+      claim.textContent = "領取";
+      card.appendChild(claim);
+      grid.appendChild(card);
+    });
+    var credit = $("#free-games-credit");
+    if (credit) credit.hidden = payload.attribution !== true;
+    section.hidden = false;
+    observeReveals();
+  }
+  getJson("/api/free-games").then(function (d) {
+    if (!isFreePayload(d)) throw new Error("bad free-games payload");
+    renderFreeGames(d);
+  }, function () { /* keep the section hidden */ });
+
   /* ---- Twitch live: the check is server side (/api/live); the browser never sees a token ---- */
   var mockPlayer = isPreviewHost && /[?&]mockplayer=1/.test(qs);
 

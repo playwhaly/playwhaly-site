@@ -220,3 +220,17 @@ footer .foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;align-items:cent
 @media (max-width:640px){
   .legal-page nav .pill{display:inline-flex}
 }
+
+/* limited-time free-to-claim games */
+.free-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6rem 1.4rem}
+.free-card{display:flex;flex-direction:column;background:var(--card);border-radius:20px;padding:.65rem .65rem 1rem;border:1px solid var(--line);box-shadow:var(--shadow);min-width:0}
+.free-media{position:relative;display:block;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--bg);margin:0 0 .8rem}
+.free-media img{width:100%;height:100%;object-fit:cover;display:block}
+.free-store{position:absolute;left:.7rem;top:.7rem;background:rgba(255,255,255,.94);color:var(--link);font-weight:800;font-size:.76rem;padding:.25rem .65rem;border-radius:999px;box-shadow:0 2px 6px rgba(58,46,42,.18);max-width:calc(100% - 1.4rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.free-title{font-weight:800;font-size:1rem;line-height:1.4;margin:0 .35rem .35rem}
+.free-left{margin:0 .35rem .15rem;font-weight:700;color:var(--accent)}
+.free-until{margin:0 .35rem .85rem;color:var(--muted);font-size:.84rem}
+.free-card .btn{align-self:flex-start;margin:.1rem .35rem 0;min-height:40px;padding:.45rem 1.1rem;font-size:.9rem}
+#free-games-credit a{font-weight:700}
+@media (max-width:900px){.free-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.free-grid{grid-template-columns:1fr}}
