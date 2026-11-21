@@ -108,6 +108,21 @@
       transition: transform 0.15s ease;
     }
     a:hover { transform: translateY(-2px); }
+    .legal-foot {
+      margin: 1.4rem 0 0;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .legal-foot a {
+      color: var(--link);
+      background: none;
+      font-weight: 700;
+      display: inline;
+      min-height: 0;
+      padding: 0;
+      border-radius: 0;
+    }
+    .legal-foot a:hover { transform: none; text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -117,5 +132,10 @@
     <p>你要找的頁面不見了，可能搬家了，也可能根本不存在，先回基地吧～</p>
     <a href="/">回基地</a>
   </div>
+  <p class="legal-foot">
+    <a href="/terms">服務條款 Terms</a>
+    ·
+    <a href="/privacy">隱私權政策 Privacy</a>
+  </p>
 </body>
 </html>
