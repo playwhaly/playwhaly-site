@@ -207,74 +207,178 @@
       return g && typeof g.title === "string" && g.title.trim() && isClaimUrl(g.claimUrl) && isFinite(Date.parse(g.endsAt));
     });
   }
-  function renderFreeGames(payload) {
+  var freeGamesList = [];
+  var freeGamesPage = 1;
+
+  function sortFreeGames(list) {
+    return list.slice().sort(function (a, b) {
+      var end = Date.parse(a.endsAt) - Date.parse(b.endsAt);
+      if (end !== 0) return end;
+      return String(a.title).localeCompare(String(b.title), "zh-Hant");
+    });
+  }
+
+  // Preview-only list used to check the pager. Honoured only on localhost and pages.dev.
+  function mockEightFreeGames() {
+    var imageA = "https://cdn1.epicgames.com/spt-assets/83a240506a884c10ad8fb99694e57a0d/mark-of-the-deep-w1ygr.png";
+    var imageB = "https://www.gamerpower.com/offers/1b/6ae264e50edb5.jpg";
+    var stores = [
+      { platform: "Epic 遊戲商店", store: "epic", url: "https://store.epicgames.com/zh-Hant/p/mark-of-the-deep-f7dc08", image: imageA },
+      { platform: "itch.io", store: "itch", url: "https://itch.io/b/3955/itching-for-games-3", image: imageB },
+      { platform: "Steam", store: "steam", url: "https://store.steampowered.com/app/10/", image: imageA },
+      { platform: "GOG", store: "gog", url: "https://www.gog.com/en/game/the_witcher_2", image: imageB }
+    ];
+    var games = [];
+    for (var i = 0; i < 8; i++) {
+      var s = stores[i % stores.length];
+      games.push({
+        title: "預覽遊戲 " + (i + 1),
+        platform: s.platform,
+        store: s.store,
+        image: s.image,
+        endsAt: new Date(Date.now() + (i + 1) * 86400000).toISOString(),
+        claimUrl: s.url,
+        source: "preview"
+      });
+    }
+    return { games: games };
+  }
+
+  function appendFreeCard(grid, game, i, instant) {
+    var left = PW.remainingFree(game.endsAt);
+    if (!left) return;
+    var card = document.createElement("article");
+    card.className = "free-card" + (instant ? "" : " reveal");
+    card.style.setProperty("--d", ((i % 3) * 0.1).toFixed(1) + "s");
+    if (game.image && /^https:\/\//.test(game.image)) {
+      var media = document.createElement("a");
+      media.className = "free-media";
+      media.href = game.claimUrl;
+      media.target = "_blank";
+      media.rel = "noopener";
+      media.setAttribute("tabindex", "-1");
+      var img = document.createElement("img");
+      img.src = game.image;
+      img.alt = game.title;
+      img.width = 1280;
+      img.height = 720;
+      img.loading = "lazy";
+      img.decoding = "async";
+      media.appendChild(img);
+      var badge = document.createElement("span");
+      badge.className = "free-store";
+      badge.textContent = game.kind === "bundle" ? (game.platform + " · 遊戲包") : game.platform;
+      media.appendChild(badge);
+      card.appendChild(media);
+    } else {
+      var badgeOnly = document.createElement("span");
+      badgeOnly.className = "free-store";
+      badgeOnly.style.position = "static";
+      badgeOnly.style.margin = "0 .35rem .5rem";
+      badgeOnly.textContent = game.kind === "bundle" ? (game.platform + " · 遊戲包") : game.platform;
+      card.appendChild(badgeOnly);
+    }
+    var title = document.createElement("h3");
+    title.className = "free-title";
+    title.textContent = game.title;
+    card.appendChild(title);
+    var remain = document.createElement("p");
+    remain.className = "free-left";
+    remain.textContent = left.text;
+    card.appendChild(remain);
+    var until = document.createElement("p");
+    until.className = "free-until";
+    until.textContent = left.until;
+    card.appendChild(until);
+    var claim = document.createElement("a");
+    claim.className = "btn btn-primary";
+    claim.href = game.claimUrl;
+    claim.target = "_blank";
+    claim.rel = "noopener";
+    claim.textContent = "領取";
+    card.appendChild(claim);
+    grid.appendChild(card);
+  }
+
+  function keepFreeSectionInView(section) {
+    var rect = section.getBoundingClientRect();
+    if (rect.top >= 0) return;
+    try {
+      section.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+    } catch (e) {
+      section.scrollIntoView(true);
+    }
+  }
+
+  function renderFreePager(sliced) {
+    var pager = $("#free-pager");
+    if (!pager) return;
+    pager.textContent = "";
+    if (!sliced.showPager) {
+      pager.hidden = true;
+      return;
+    }
+    function addBtn(label, aria, page, opts) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = label;
+      btn.setAttribute("aria-label", aria);
+      if (opts && opts.current) btn.setAttribute("aria-current", "page");
+      if (opts && opts.disabled) {
+        btn.setAttribute("aria-disabled", "true");
+      } else {
+        btn.addEventListener("click", function () { showFreeGamesPage(page, true); });
+      }
+      pager.appendChild(btn);
+    }
+    addBtn("‹", "上一頁", sliced.page - 1, { disabled: sliced.page <= 1 });
+    PW.freePagerPages(sliced.page, sliced.pages).forEach(function (item) {
+      if (item === "…") {
+        var dots = document.createElement("span");
+        dots.className = "free-ellipsis";
+        dots.setAttribute("aria-hidden", "true");
+        dots.textContent = "…";
+        pager.appendChild(dots);
+        return;
+      }
+      addBtn(String(item), "第 " + item + " 頁", item, { current: item === sliced.page });
+    });
+    addBtn("›", "下一頁", sliced.page + 1, { disabled: sliced.page >= sliced.pages });
+    pager.hidden = false;
+  }
+
+  function showFreeGamesPage(page, fromUser) {
     var section = $("#free-games");
     var grid = $("#free-grid");
     if (!section || !grid) return;
-    var games = payload.games.filter(function (g) { return PW.remainingFree(g.endsAt); });
-    if (!games.length) { section.hidden = true; return; }
+    var sliced = PW.sliceFreeGames(freeGamesList, page);
+    if (!sliced.total) { section.hidden = true; return; }
+    freeGamesPage = sliced.page;
     grid.textContent = "";
-    games.forEach(function (game, i) {
-      var left = PW.remainingFree(game.endsAt);
-      var card = document.createElement("article");
-      card.className = "free-card reveal";
-      card.style.setProperty("--d", ((i % 3) * 0.1).toFixed(1) + "s");
-      if (game.image && /^https:\/\//.test(game.image)) {
-        var media = document.createElement("a");
-        media.className = "free-media";
-        media.href = game.claimUrl;
-        media.target = "_blank";
-        media.rel = "noopener";
-        media.setAttribute("tabindex", "-1");
-        var img = document.createElement("img");
-        img.src = game.image;
-        img.alt = game.title;
-        img.width = 1280;
-        img.height = 720;
-        img.loading = "lazy";
-        img.decoding = "async";
-        media.appendChild(img);
-        var badge = document.createElement("span");
-        badge.className = "free-store";
-        badge.textContent = game.kind === "bundle" ? (game.platform + " · 遊戲包") : game.platform;
-        media.appendChild(badge);
-        card.appendChild(media);
-      } else {
-        var badgeOnly = document.createElement("span");
-        badgeOnly.className = "free-store";
-        badgeOnly.style.position = "static";
-        badgeOnly.style.margin = "0 .35rem .5rem";
-        badgeOnly.textContent = game.kind === "bundle" ? (game.platform + " · 遊戲包") : game.platform;
-        card.appendChild(badgeOnly);
-      }
-      var title = document.createElement("h3");
-      title.className = "free-title";
-      title.textContent = game.title;
-      card.appendChild(title);
-      var remain = document.createElement("p");
-      remain.className = "free-left";
-      remain.textContent = left.text;
-      card.appendChild(remain);
-      var until = document.createElement("p");
-      until.className = "free-until";
-      until.textContent = left.until;
-      card.appendChild(until);
-      var claim = document.createElement("a");
-      claim.className = "btn btn-primary";
-      claim.href = game.claimUrl;
-      claim.target = "_blank";
-      claim.rel = "noopener";
-      claim.textContent = "領取";
-      card.appendChild(claim);
-      grid.appendChild(card);
-    });
+    grid.setAttribute("aria-live", "polite");
+    sliced.items.forEach(function (game, i) { appendFreeCard(grid, game, i, fromUser); });
+    renderFreePager(sliced);
     section.hidden = false;
     observeReveals();
+    if (fromUser) keepFreeSectionInView(section);
   }
-  getJson("/api/free-games").then(function (d) {
-    if (!isFreePayload(d)) throw new Error("bad free-games payload");
-    renderFreeGames(d);
-  }, function () { /* keep the section hidden */ });
+
+  function renderFreeGames(payload) {
+    var section = $("#free-games");
+    if (!section) return;
+    freeGamesList = sortFreeGames((payload.games || []).filter(function (g) { return PW.remainingFree(g.endsAt); }));
+    freeGamesPage = 1;
+    if (!freeGamesList.length) { section.hidden = true; return; }
+    showFreeGamesPage(1, false);
+  }
+  if (isPreviewHost && /[?&]freegames=mock8(?:&|$)/.test(qs)) {
+    renderFreeGames(mockEightFreeGames());
+  } else {
+    getJson("/api/free-games").then(function (d) {
+      if (!isFreePayload(d)) throw new Error("bad free-games payload");
+      renderFreeGames(d);
+    }, function () { /* keep the section hidden */ });
+  }
 
   /* ---- Twitch live: the check is server side (/api/live); the browser never sees a token ---- */
   var mockPlayer = isPreviewHost && /[?&]mockplayer=1/.test(qs);

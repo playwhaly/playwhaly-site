@@ -389,3 +389,25 @@ for (const [name, html] of [["terms", terms], ["privacy", privacy]]) {
 assert.equal(terms.includes("資料來源"), true);
 assert.equal(terms.includes("Data sources"), true);
 console.log("all free-games tests passed (legal credit)");
+
+// No hard cap on the free-games list; ending-soonest stays first.
+const many = [];
+for (let i = 10; i >= 1; i--) {
+  many.push({
+    title: "Cap Test " + String(i).padStart(2, "0"),
+    platform: "Steam",
+    store: "steam",
+    image: "https://cdn.akamai.steamstatic.com/steam/apps/10/header.jpg",
+    endsAt: "2026-12-" + String(i).padStart(2, "0") + "T12:00:00.000Z",
+    claimUrl: "https://store.steampowered.com/app/" + (1000 + i) + "/",
+    source: "gamerpower",
+  });
+}
+const uncapped = mergeGames([many], NOW);
+assert.equal(uncapped.length, 10, "no hard cap on total free games");
+assert.deepEqual(
+  uncapped.map((g) => g.title),
+  many.slice().reverse().map((g) => g.title),
+  "sorted by ending soonest first",
+);
+console.log("all free-games tests passed (no cap)");

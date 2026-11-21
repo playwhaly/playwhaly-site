@@ -119,3 +119,34 @@ assert.equal(left.until, "11月27日（五）截止");
 assert.equal(PW.remainingFree("2026-11-22T10:00:00.000Z", "2026-11-22T01:00:00.000Z").text, "剩 9 小時");
 assert.equal(PW.remainingFree("2026-11-21T00:00:00.000Z", "2026-11-22T00:00:00.000Z"), null);
 console.log("all lib tests passed (free dates)");
+
+assert.equal(PW.FREE_PAGE_SIZE, 3);
+assert.equal(PW.needsFreePager(0), false);
+assert.equal(PW.needsFreePager(3), false, "pager hidden at 3");
+assert.equal(PW.needsFreePager(4), true, "pager shown at 4+");
+assert.equal(PW.needsFreePager(8), true);
+
+var eight = [];
+for (var n = 1; n <= 8; n++) eight.push({ title: "Game " + n });
+var p1 = PW.sliceFreeGames(eight, 1);
+assert.equal(p1.showPager, true);
+assert.equal(p1.pages, 3);
+assert.equal(p1.page, 1);
+assert.deepEqual(p1.items.map(function (g) { return g.title; }), ["Game 1", "Game 2", "Game 3"]);
+var p2 = PW.sliceFreeGames(eight, 2);
+assert.deepEqual(p2.items.map(function (g) { return g.title; }), ["Game 4", "Game 5", "Game 6"]);
+var p3 = PW.sliceFreeGames(eight, 3);
+assert.deepEqual(p3.items.map(function (g) { return g.title; }), ["Game 7", "Game 8"]);
+assert.equal(PW.sliceFreeGames(eight, 0).page, 1, "page numbers clamp at the start");
+assert.equal(PW.sliceFreeGames(eight, 99).page, 3, "page numbers clamp at the end");
+assert.deepEqual(PW.sliceFreeGames(eight, 99).items.map(function (g) { return g.title; }), ["Game 7", "Game 8"]);
+
+var three = PW.sliceFreeGames(eight.slice(0, 3), 1);
+assert.equal(three.showPager, false, "pager hidden at 3");
+assert.equal(three.pages, 1);
+assert.equal(three.items.length, 3);
+
+assert.deepEqual(PW.freePagerPages(1, 3), [1, 2, 3]);
+assert.deepEqual(PW.freePagerPages(1, 10)[0], 1);
+assert.equal(PW.freePagerPages(6, 10).includes("…"), true);
+console.log("all lib tests passed (free pager)");

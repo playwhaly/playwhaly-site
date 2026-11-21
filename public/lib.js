@@ -185,6 +185,58 @@
     try { return new URL(url).searchParams.get("v") || ""; } catch (e) { return ""; }
   }
 
+  var FREE_PAGE_SIZE = 3;
+
+  function needsFreePager(total, size) {
+    size = size || FREE_PAGE_SIZE;
+    return (total || 0) > size;
+  }
+
+  // Slice a free-games list into a page of `size` (default 3). Page numbers are 1-based and clamped.
+  function sliceFreeGames(games, page, size) {
+    size = size || FREE_PAGE_SIZE;
+    var list = Array.isArray(games) ? games : [];
+    var pages = list.length ? Math.ceil(list.length / size) : 0;
+    var p = pages ? Math.max(1, Math.min(parseInt(page, 10) || 1, pages)) : 1;
+    var start = (p - 1) * size;
+    return {
+      page: pages ? p : 1,
+      pages: pages,
+      size: size,
+      total: list.length,
+      items: list.slice(start, start + size),
+      showPager: list.length > size
+    };
+  }
+
+  // Google-style page list: all numbers when there are few pages, otherwise 1 … window … last.
+  function freePagerPages(current, total) {
+    var pages = total || 0;
+    var cur = Math.max(1, Math.min(current || 1, Math.max(1, pages)));
+    if (pages <= 0) return [];
+    if (pages <= 7) {
+      var all = [];
+      for (var i = 1; i <= pages; i++) all.push(i);
+      return all;
+    }
+    var keep = {};
+    function add(n) { if (n >= 1 && n <= pages) keep[n] = true; }
+    add(1);
+    add(pages);
+    for (var j = cur - 1; j <= cur + 1; j++) add(j);
+    if (cur <= 3) { add(2); add(3); add(4); add(5); }
+    if (cur >= pages - 2) { add(pages - 1); add(pages - 2); add(pages - 3); add(pages - 4); }
+    var nums = [];
+    for (var n in keep) nums.push(+n);
+    nums.sort(function (a, b) { return a - b; });
+    var out = [];
+    for (var k = 0; k < nums.length; k++) {
+      if (k && nums[k] - nums[k - 1] > 1) out.push("…");
+      out.push(nums[k]);
+    }
+    return out;
+  }
+
   function esc(t) {
     return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
@@ -208,5 +260,5 @@
   function slidesHTML(items) { return items.slice(0, 3).map(slideHTML).join("\n"); }
   function cardsHTML(items) { return items.map(cardHTML).join("\n"); }
 
-  return { esc: esc, slidesHTML: slidesHTML, cardsHTML: cardsHTML, sgtDay: sgtDay, dayNum: dayNum, formatMD: formatMD, formatEndsSGT: formatEndsSGT, remainingFree: remainingFree, nextLongVideo: nextLongVideo, gameFromTitle: gameFromTitle, englishGameName: englishGameName, gameChipFromTitle: gameChipFromTitle, newGamesFromTitles: newGamesFromTitles, findGame: findGame, chipGames: chipGames, videoId: videoId, GAMES: GAMES };
+  return { esc: esc, slidesHTML: slidesHTML, cardsHTML: cardsHTML, sgtDay: sgtDay, dayNum: dayNum, formatMD: formatMD, formatEndsSGT: formatEndsSGT, remainingFree: remainingFree, FREE_PAGE_SIZE: FREE_PAGE_SIZE, needsFreePager: needsFreePager, sliceFreeGames: sliceFreeGames, freePagerPages: freePagerPages, nextLongVideo: nextLongVideo, gameFromTitle: gameFromTitle, englishGameName: englishGameName, gameChipFromTitle: gameChipFromTitle, newGamesFromTitles: newGamesFromTitles, findGame: findGame, chipGames: chipGames, videoId: videoId, GAMES: GAMES };
 });

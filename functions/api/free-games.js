@@ -1,7 +1,6 @@
 const FETCH_MS = 8000;
 const CACHE_SECONDS = 3600;
 const EMPTY_CACHE_SECONDS = 300;
-const MAX_GAMES = 9;
 const CACHE_KEY = "https://playwhaly.com/api/free-games";
 const UA = "playwhaly.com/free-games (https://playwhaly.com/)";
 const EPIC_URL =
@@ -389,7 +388,7 @@ export function mergeGames(groups, nowMs) {
     if (end !== 0) return end;
     return a.title.localeCompare(b.title, "zh-Hant");
   });
-  return out.slice(0, MAX_GAMES);
+  return out;
 }
 
 export function isFreeGame(item) {
