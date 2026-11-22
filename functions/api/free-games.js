@@ -5,8 +5,9 @@ const CACHE_KEY = "https://playwhaly.com/api/free-games";
 const UA = "playwhaly.com/free-games (https://playwhaly.com/)";
 const EPIC_URL =
   "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-Hant&country=SG&allowCountries=SG";
-const GOG_URL = "https://www.gog.com/giveaway/api/get";
+const EPIC_GRAPHQL = "https://store.epicgames.com/graphql";
 const GAMERPOWER_URL = "https://www.gamerpower.com/api/giveaways?platform=pc&type=game";
+const STEAM_APPDETAILS = "https://store.steampowered.com/api/appdetails?appids=";
 
 const STORE_LABELS = {
   epic: "Epic 遊戲商店",
@@ -18,6 +19,46 @@ const STORE_LABELS = {
 };
 
 const AFFILIATE_PARAM = /^(ref|referrer|referer|aff|affiliate|partner|campaign|tap_s|tap_a|fbclid|gclid|mc_eid)|^(utm_)/i;
+
+const ROMAN_VALUES = {
+  i: "1",
+  ii: "2",
+  iii: "3",
+  iv: "4",
+  v: "5",
+  vi: "6",
+  vii: "7",
+  viii: "8",
+  ix: "9",
+  x: "10",
+  xi: "11",
+  xii: "12",
+  xiii: "13",
+  xiv: "14",
+  xv: "15",
+  xvi: "16",
+  xvii: "17",
+  xviii: "18",
+  xix: "19",
+  xx: "20",
+};
+
+const ADULT_PATTERNS = [
+  /\bhentai\b/i,
+  /\bnsfw\b/i,
+  /\badult\b/i,
+  /\bsexually\b/i,
+  /\bsexual(?:ity)?\b/i,
+  /\bnudity\b/i,
+  /\bnude\b/i,
+  /\berotica\b/i,
+  /\berotic\b/i,
+  /\bporn(?:o|ographic|ography)?\b/i,
+  /\buncensored\b/i,
+  /\bwaifu\s+strip\b/i,
+  /\bxxx\b/i,
+  /18\s*\+|\+18\b|\b18\s*plus\b|\br\s*-?\s*18\b/i,
+];
 
 export function unwrapTitle(title) {
   const text = String(title || "").replace(/\s+/g, " ").trim();
@@ -31,6 +72,40 @@ export function cleanGamerPowerTitle(title) {
     .replace(/\s+Giveaway\s*$/i, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function normalizeTitle(title) {
+  const cleaned = cleanGamerPowerTitle(title)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ");
+  const numbered = cleaned.replace(
+    /\b(xx|xix|xviii|xvii|xvi|xv|xiv|xiii|xii|xi|x|ix|viii|vii|vi|v|iv|iii|ii|i)\b/g,
+    (token) => ROMAN_VALUES[token] || token,
+  );
+  return numbered.replace(/\s+/g, " ").trim();
+}
+
+export function isAdultGamerPowerText(title, description) {
+  const hay = [title, description].map((v) => String(v || "")).join(" \n ");
+  return ADULT_PATTERNS.some((re) => re.test(hay));
+}
+
+function hasCjk(text) {
+  return /[\u3040-\u30ff\u3400-\u9fff\uf900-\ufaff]/.test(String(text || ""));
+}
+
+export function formatLocalizedTitle(official, fallback) {
+  const primary = unwrapTitle(official);
+  const english = unwrapTitle(fallback);
+  if (!primary) return english;
+  if (!english) return primary;
+  if (!hasCjk(primary)) return primary;
+  const officialNorm = normalizeTitle(primary);
+  const englishNorm = normalizeTitle(english);
+  if (!englishNorm || officialNorm.includes(englishNorm) || primary.toLowerCase().includes(english.toLowerCase())) {
+    return primary;
+  }
+  return primary + " " + english;
 }
 
 function hostOf(url) {
@@ -91,6 +166,26 @@ export function sanitizeStoreUrl(href) {
   url.hostname = url.hostname.toLowerCase();
   const out = url.toString();
   return out.endsWith("?") ? out.slice(0, -1) : out;
+}
+
+export function epicSlugFromUrl(href) {
+  try {
+    const url = new URL(href);
+    const page = url.pathname.match(/\/(?:[a-z]{2}(?:-[A-Za-z]+)?\/)?p\/([^/]+)/i);
+    return page ? decodeURIComponent(page[1]).toLowerCase() : "";
+  } catch {
+    return "";
+  }
+}
+
+export function steamAppIdFromUrl(href) {
+  try {
+    const url = new URL(href);
+    const match = url.pathname.match(/\/app\/(\d+)/i);
+    return match ? match[1] : "";
+  } catch {
+    return "";
+  }
 }
 
 export function parseGamerPowerEnd(value) {
@@ -192,57 +287,6 @@ export function parseEpicPromotions(data, nowMs) {
   return games;
 }
 
-function pickFirst(obj, keys) {
-  if (!obj || typeof obj !== "object") return "";
-  for (const key of keys) {
-    const value = obj[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return "";
-}
-
-export function parseGogGiveaway(data, nowMs) {
-  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
-  if (!data || typeof data !== "object") return [];
-  if (data.status === "not_found" || data.code === 404) return [];
-  const product = data.product && typeof data.product === "object" ? data.product : data;
-  const title = unwrapTitle(pickFirst(product, ["title", "name"]) || pickFirst(data, ["title", "productTitle", "name"]));
-  const slug = pickFirst(product, ["slug", "productSlug"]) || pickFirst(data, ["slug"]);
-  let claimUrl = pickFirst(product, ["url", "storeLink", "link"]) || pickFirst(data, ["url", "storeLink"]);
-  if (!claimUrl && ((product._links && product._links.product_card) || (data._links && data._links.product_card))) {
-    const card = (product._links && product._links.product_card && product._links.product_card.href) ||
-      (data._links && data._links.product_card && data._links.product_card.href);
-    if (card) claimUrl = card;
-  }
-  if (!claimUrl && slug) claimUrl = "https://www.gog.com/en/game/" + slug.replace(/^\/+/, "");
-  if (claimUrl && claimUrl.startsWith("//")) claimUrl = "https:" + claimUrl;
-  if (claimUrl && claimUrl.startsWith("/")) claimUrl = "https://www.gog.com" + claimUrl;
-  claimUrl = sanitizeStoreUrl(claimUrl);
-  const endRaw = pickFirst(data, ["endDate", "end_date", "until"]) || pickFirst(product, ["endDate", "end_date"]);
-  const endMs = Date.parse(endRaw);
-  if (!title || !claimUrl || !Number.isFinite(endMs) || endMs <= now) return [];
-  if (storeFromHost(hostOf(claimUrl)) !== "gog") return [];
-  let image =
-    pickFirst(product, ["image", "imageUrl", "image_url"]) ||
-    pickFirst(data, ["image", "imageUrl", "image_url"]) ||
-    ((data._links && data._links.image && data._links.image.href) || "");
-  if (image.startsWith("//")) image = "https:" + image;
-  if (!isHttpsImageUrl(image)) image = "";
-  return [
-    {
-      id: "gog:" + (product.id || slug || title),
-      title,
-      platform: STORE_LABELS.gog,
-      store: "gog",
-      image,
-      endsAt: new Date(endMs).toISOString(),
-      claimUrl,
-      source: "gog",
-      kind: "game",
-    },
-  ];
-}
-
 function gamerPowerKind(item) {
   const type = String((item && item.type) || "");
   const title = String((item && item.title) || "");
@@ -255,13 +299,6 @@ function gamerPowerKind(item) {
   return "game";
 }
 
-function platformsOf(item) {
-  return String((item && item.platforms) || "")
-    .split(",")
-    .map((p) => p.trim().toLowerCase())
-    .filter(Boolean);
-}
-
 export function gamerPowerCandidates(items, nowMs) {
   const now = Number.isFinite(nowMs) ? nowMs : Date.now();
   const list = Array.isArray(items) ? items : [];
@@ -270,10 +307,7 @@ export function gamerPowerCandidates(items, nowMs) {
     if (!item || String(item.status || "").toLowerCase() !== "active") continue;
     const kind = gamerPowerKind(item);
     if (!kind) continue;
-    const plats = platformsOf(item);
-    // Official Epic and GOG endpoints are the source of truth for those stores.
-    if (plats.some((p) => p === "epic games store" || p === "epic")) continue;
-    if (plats.some((p) => p === "gog")) continue;
+    if (isAdultGamerPowerText(item.title, item.description)) continue;
     const endMs = parseGamerPowerEnd(item.end_date);
     if (!Number.isFinite(endMs) || endMs <= now) continue;
     const title = cleanGamerPowerTitle(item.title);
@@ -357,6 +391,126 @@ async function resolveGamerPowerGames(candidates, fetchImpl) {
   return resolved.filter(Boolean);
 }
 
+export function isSteamAdultApp(details) {
+  if (!details || typeof details !== "object") return false;
+  const age = Number(details.required_age);
+  if (Number.isFinite(age) && age >= 18) return true;
+  const ids = (details.content_descriptors && details.content_descriptors.ids) || [];
+  return ids.some((id) => Number(id) === 3 || Number(id) === 4);
+}
+
+export async function isOfficialSteamAdult(claimUrl, fetchImpl) {
+  const appid = steamAppIdFromUrl(claimUrl);
+  if (!appid) return false;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_MS);
+  try {
+    const res = await fetchImpl(STEAM_APPDETAILS + appid, {
+      method: "GET",
+      signal: ctrl.signal,
+      headers: { "User-Agent": UA, Accept: "application/json" },
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    const entry = data && data[appid];
+    if (!entry || entry.success !== true || !entry.data) return false;
+    return isSteamAdultApp(entry.data);
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function dropAdultSteamGames(games, fetchImpl) {
+  const checked = await Promise.all(
+    games.map(async (game) => {
+      if (!game || game.store !== "steam") return game;
+      return (await isOfficialSteamAdult(game.claimUrl, fetchImpl)) ? null : game;
+    }),
+  );
+  return checked.filter(Boolean);
+}
+
+export function findEpicMatch(game, epicGames) {
+  if (!game || game.store !== "epic") return null;
+  const slug = epicSlugFromUrl(game.claimUrl);
+  const titleKey = normalizeTitle(game.title);
+  for (const epic of epicGames || []) {
+    if (!epic) continue;
+    const epicSlugValue = epicSlugFromUrl(epic.claimUrl);
+    if (slug && epicSlugValue && slug === epicSlugValue) return epic;
+    if (titleKey && normalizeTitle(epic.title) === titleKey) return epic;
+  }
+  return null;
+}
+
+export async function fetchEpicCatalogTitle(slug, keywords, fetchImpl) {
+  if (!slug || !fetchImpl) return "";
+  const body = JSON.stringify({
+    query:
+      "query($locale:String,$country:String!,$keywords:String,$count:Int){Catalog{searchStore(locale:$locale,country:$country,keywords:$keywords,count:$count){elements{title offerMappings{pageSlug} catalogNs{mappings{pageSlug}}}}}}",
+    variables: { locale: "zh-Hant", country: "SG", keywords: keywords || slug, count: 10 },
+  });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_MS);
+  try {
+    const res = await fetchImpl(EPIC_GRAPHQL, {
+      method: "POST",
+      signal: ctrl.signal,
+      headers: {
+        "User-Agent": UA,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Origin: "https://store.epicgames.com",
+      },
+      body,
+    });
+    if (!res.ok) return "";
+    const data = await res.json();
+    const elements =
+      (data && data.data && data.data.Catalog && data.data.Catalog.searchStore && data.data.Catalog.searchStore.elements) ||
+      [];
+    const want = String(slug).toLowerCase();
+    for (const element of elements) {
+      const slugs = []
+        .concat((element && element.offerMappings) || [])
+        .concat(((element && element.catalogNs) || {}).mappings || [])
+        .map((m) => (m && m.pageSlug ? String(m.pageSlug).toLowerCase() : ""))
+        .filter(Boolean);
+      if (slugs.includes(want) && element.title) return unwrapTitle(element.title);
+    }
+    return "";
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function applyEpicData(games, epicGames, fetchImpl) {
+  const feed = Array.isArray(epicGames) ? epicGames : [];
+  return Promise.all(
+    (games || []).map(async (game) => {
+      if (!game || game.store !== "epic") return game;
+      const hit = findEpicMatch(game, feed);
+      if (hit) {
+        return {
+          ...game,
+          title: formatLocalizedTitle(hit.title, game.title) || game.title,
+          image: hit.image || game.image,
+          endsAt: hit.endsAt || game.endsAt,
+          claimUrl: hit.claimUrl || game.claimUrl,
+          platform: STORE_LABELS.epic,
+        };
+      }
+      const official = await fetchEpicCatalogTitle(epicSlugFromUrl(game.claimUrl), game.title, fetchImpl);
+      const title = formatLocalizedTitle(official, game.title) || game.title;
+      return title === game.title ? game : { ...game, title };
+    }),
+  );
+}
+
 export function mergeGames(groups, nowMs) {
   const now = Number.isFinite(nowMs) ? nowMs : Date.now();
   const seen = new Set();
@@ -366,21 +520,26 @@ export function mergeGames(groups, nowMs) {
     if (/gamerpower/i.test(game.claimUrl)) continue;
     const end = Date.parse(game.endsAt);
     if (!Number.isFinite(end) || end <= now) continue;
-    const key = game.store + ":" + game.title.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
+    const claimUrl = sanitizeStoreUrl(game.claimUrl);
+    if (!claimUrl) continue;
+    const keys = [game.store + ":" + normalizeTitle(game.title), game.store + ":url:" + claimUrl];
+    const slug = game.store === "epic" ? epicSlugFromUrl(claimUrl) : "";
+    if (slug) keys.push(game.store + ":slug:" + slug);
+    const appid = game.store === "steam" ? steamAppIdFromUrl(claimUrl) : "";
+    if (appid) keys.push(game.store + ":app:" + appid);
+    if (keys.some((key) => seen.has(key))) continue;
+    for (const key of keys) seen.add(key);
     const clean = {
       title: game.title,
       platform: game.platform || STORE_LABELS[game.store] || game.store,
       store: game.store,
       image: isHttpsImageUrl(game.image) ? game.image : "",
       endsAt: new Date(end).toISOString(),
-      claimUrl: sanitizeStoreUrl(game.claimUrl),
+      claimUrl,
       source: game.source,
     };
     if (game.kind === "bundle") clean.kind = "bundle";
     if (game.id) clean.id = game.id;
-    if (!clean.claimUrl) continue;
     out.push(clean);
   }
   out.sort((a, b) => {
@@ -437,7 +596,9 @@ export function toRss(payload, origin) {
     '<rss version="2.0"><channel>' +
     "<title>" + esc("威利 Whaly｜限時免費領取") + "</title>" +
     "<link>" + esc(site + "/#free-games") + "</link>" +
-    "<description>" + esc("各商店目前限時免費、領了就能留下來的遊戲。Data: GamerPower.com, Epic Games Store, GOG") + "</description>" +
+    "<description>" +
+    esc("各商店目前限時免費、領了就能留下來的遊戲。Data: GamerPower.com; some Epic titles, images and end times from the Epic Games Store") +
+    "</description>" +
     "<language>zh-Hant</language>" +
     items +
     "</channel></rss>"
@@ -473,24 +634,22 @@ export async function loadFreeGames(fetchImpl, options) {
   const cfCache = Boolean(options && options.cfCache);
   const nowMs = options && Number.isFinite(options.nowMs) ? options.nowMs : Date.now();
   const results = await Promise.allSettled([
-    fetchJson(EPIC_URL, fetchImpl, cfCache),
-    fetchJson(GOG_URL, fetchImpl, cfCache, [404]),
     fetchJson(GAMERPOWER_URL, fetchImpl, cfCache, [201]),
+    fetchJson(EPIC_URL, fetchImpl, cfCache),
   ]);
-  const failed = results.filter((r) => r.status === "rejected");
-  const epicData = results[0].status === "fulfilled" ? results[0].value.data : null;
-  const gogHit = results[1].status === "fulfilled" ? results[1].value : null;
-  const gpHit = results[2].status === "fulfilled" ? results[2].value : null;
+  const gpHit = results[0].status === "fulfilled" ? results[0].value : null;
+  const epicData = results[1].status === "fulfilled" ? results[1].value.data : null;
 
-  const epicGames = epicData ? parseEpicPromotions(epicData, nowMs) : [];
-  const gogGames = gogHit && gogHit.status !== 404 ? parseGogGiveaway(gogHit.data, nowMs) : [];
-  const gpItems = gpHit && gpHit.status === 200 ? gamerPowerCandidates(gpHit.data, nowMs) : [];
-  const gpGames = gpItems.length ? await resolveGamerPowerGames(gpItems, fetchImpl) : [];
-
-  const games = mergeGames([epicGames, gogGames, gpGames], nowMs);
-  if (!games.length && failed.length === 3) {
+  if (!gpHit || (gpHit.status !== 200 && gpHit.status !== 201)) {
     throw new Error("unavailable");
   }
+
+  const gpItems = gpHit.data ? gamerPowerCandidates(gpHit.data, nowMs) : [];
+  const gpGames = gpItems.length ? await resolveGamerPowerGames(gpItems, fetchImpl) : [];
+  const ageChecked = await dropAdultSteamGames(gpGames, fetchImpl);
+  const epicGames = epicData ? parseEpicPromotions(epicData, nowMs) : [];
+  const enriched = await applyEpicData(ageChecked, epicGames, fetchImpl);
+  const games = mergeGames([enriched], nowMs);
   return {
     payload: {
       games,
