@@ -97,3 +97,12 @@ assert.equal(isAllowedCsvUrl("https://googleusercontent.com.evil.example/x.csv")
 assert.equal(isAllowedCsvUrl("https://evilgoogleusercontent.com/x.csv"), false);
 
 console.log("all backlog tests passed");
+
+// ?view=stats keeps only the counts for the home page.
+{
+  const { statsView } = await import("../functions/api/backlog.js");
+  const small = statsView({ ok: true, updatedAt: "x", stats: { total: 2 }, playing: [1], recentlyCompleted: [2], games: [1, 2] });
+  assert.deepEqual(small, { ok: true, updatedAt: "x", stats: { total: 2 } });
+  assert.deepEqual(statsView({ ok: false, reason: "unset" }), { ok: false, reason: "unset" });
+  console.log("stats view tests passed");
+}

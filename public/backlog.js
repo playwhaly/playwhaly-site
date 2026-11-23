@@ -51,6 +51,7 @@
       return;
     }
     box.hidden = false;
+    box.removeAttribute("aria-busy");
     function set(id, n) {
       var el = document.getElementById(id);
       if (el) el.textContent = U.formatInt(n);
@@ -77,6 +78,8 @@
   function renderRecent(list) {
     var ul = document.getElementById("recent-done");
     var footEl = document.getElementById("recent-done-foot");
+    var loading = document.getElementById("recent-done-loading");
+    if (loading) loading.parentNode.removeChild(loading);
     if (!ul) return;
     if (!list || !list.length) {
       ul.innerHTML = "";

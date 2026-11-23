@@ -150,3 +150,11 @@ assert.deepEqual(PW.freePagerPages(1, 3), [1, 2, 3]);
 assert.deepEqual(PW.freePagerPages(1, 10)[0], 1);
 assert.equal(PW.freePagerPages(6, 10).includes("…"), true);
 console.log("all lib tests passed (free pager)");
+
+// sameLinks: keep baked HTML when the same videos are already on the page.
+const fakeBox = (hrefs) => ({ querySelectorAll: () => hrefs.map((h) => ({ getAttribute: () => h })) });
+assert.equal(PW.sameLinks(fakeBox(["a", "b"]), "a", [{ url: "a" }, { url: "b" }]), true);
+assert.equal(PW.sameLinks(fakeBox(["a", "b"]), "a", [{ url: "b" }, { url: "a" }]), false);
+assert.equal(PW.sameLinks(fakeBox(["a"]), "a", [{ url: "a" }, { url: "b" }]), false);
+assert.equal(PW.sameLinks(null, "a", [{ url: "a" }]), false);
+console.log("sameLinks tests passed");

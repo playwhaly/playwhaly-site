@@ -300,6 +300,12 @@ export async function loadBacklog(fetchImpl, options) {
   }
 }
 
+// The home page only needs the counts. ?view=stats returns a few hundred bytes instead of the whole list.
+export function statsView(payload) {
+  if (!payload || !payload.ok) return payload;
+  return { ok: true, updatedAt: payload.updatedAt, stats: payload.stats };
+}
+
 export async function onRequest(context) {
   if (context.request.method !== "GET" && context.request.method !== "HEAD") {
     return jsonResponse({ error: "method not allowed" }, 405, 60);
@@ -307,12 +313,14 @@ export async function onRequest(context) {
   const env = context.env || {};
   const csvUrl = env.BACKLOG_CSV_URL || "";
   const now = Date.now();
+  const statsOnly = new URL(context.request.url).searchParams.get("view") === "stats";
+  const shape = (body) => (statsOnly ? statsView(body) : body);
   if (memoryCache.body && now - memoryCache.at < CACHE_SECONDS * 1000 && memoryCache.url === csvUrl) {
-    return jsonResponse(memoryCache.body, 200, CACHE_SECONDS);
+    return jsonResponse(shape(memoryCache.body), 200, CACHE_SECONDS);
   }
   const resolved = await loadBacklog(fetch, { csvUrl, nowMs: now });
   if (resolved.payload.ok) {
     memoryCache = { at: now, url: csvUrl, body: resolved.payload };
   }
-  return jsonResponse(resolved.payload, 200, resolved.cacheSeconds);
+  return jsonResponse(shape(resolved.payload), 200, resolved.cacheSeconds);
 }

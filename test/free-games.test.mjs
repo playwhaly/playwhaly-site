@@ -496,7 +496,8 @@ assert.equal(
 );
 const markFallback = epicDown.payload.games.find((g) => /mark of the deep/i.test(g.title));
 assert.equal(markFallback.endsAt, "2026-11-26T23:59:00.000Z", "without Epic enrichment, keep the GamerPower end date");
-assert.equal(markFallback.image, "https://www.gamerpower.com/offers/1b/6aff1d0e4942d.jpg");
+assert.equal(markFallback.image, "/api/cover?p=%2Foffers%2F1b%2F6aff1d0e4942d.jpg", "listing-site covers are served same-origin");
+assert.equal(epicDown.payload.games.some((g) => /gamerpower/i.test(g.image || "")), false);
 const contractorFallback = epicDown.payload.games.find((g) => /contractor/i.test(g.title));
 assert.equal(contractorFallback.title, "Contractor: The Clean Up Part 2");
 assert.equal(contractorFallback.claimUrl, "https://store.epicgames.com/zh-Hant/p/contractor-the-clean-up-part-ii-1b1b57");

@@ -1,3 +1,5 @@
+import { coverProxyUrl, isCoverProxyUrl } from "./cover.js";
+
 const FETCH_MS = 8000;
 const CACHE_SECONDS = 3600;
 const EMPTY_CACHE_SECONDS = 300;
@@ -751,7 +753,7 @@ export function isFreeGame(item) {
   if (!isOfficialClaimUrl(item.claimUrl, item.kind)) return false;
   if (/gamerpower/i.test(item.claimUrl)) return false;
   if (item.endsAt != null && !Number.isFinite(Date.parse(item.endsAt))) return false;
-  if (item.image && !isHttpsImageUrl(item.image)) return false;
+  if (item.image && !isHttpsImageUrl(item.image) && !isCoverProxyUrl(item.image)) return false;
   if (!item.platform || !item.store || !item.source) return false;
   return true;
 }
@@ -913,6 +915,11 @@ export async function loadFreeGames(fetchImpl, options) {
   const epicGames = epicData ? parseEpicPromotions(epicData, nowMs) : [];
   const enriched = await applyEpicData(ageChecked, epicGames, fetchImpl);
   const all = mergeGames([enriched], nowMs);
+  // Covers that only exist on the listing site's image host are served same-origin via /api/cover.
+  for (const g of all) {
+    const proxied = g.image ? coverProxyUrl(g.image) : "";
+    if (proxied) g.image = proxied;
+  }
   const games = all.filter((g) => g.kind !== "dlc");
   const loot = all.filter((g) => g.kind === "dlc");
   const upcoming = epicData ? parseEpicUpcoming(epicData, nowMs) : [];
@@ -928,7 +935,12 @@ export async function loadFreeGames(fetchImpl, options) {
     try {
       const hist = await updateFreeGamesHistory(kv, all, nowMs);
       if (hist.seenCount) payload.seenCount = hist.seenCount;
-      if (hist.ended && hist.ended.length) payload.ended = hist.ended;
+      if (hist.ended && hist.ended.length) {
+        payload.ended = hist.ended.map((g) => {
+          const proxied = g && g.image ? coverProxyUrl(g.image) : "";
+          return proxied ? { ...g, image: proxied } : g;
+        });
+      }
     } catch {
       /* hide count and ended rather than invent numbers */
     }

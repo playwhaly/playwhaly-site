@@ -19,7 +19,7 @@
     })
     .catch(function () {});
 
-  fetch("/api/backlog")
+  fetch("/api/backlog?view=stats")
     .then(function (r) { return r.ok ? r.json() : null; })
     .then(function (d) {
       if (!d || !d.ok || !d.stats) return;

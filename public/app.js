@@ -86,7 +86,10 @@
       badge.querySelector(".badge-text").textContent = "最新上傳 · " + (g ? g + " · " : "") + PW.formatMD(videos[0].published);
     }
     var grid = $("#video-grid");
-    if (grid) { grid.innerHTML = PW.cardsHTML(videos.slice(1, 10)); fitGrid(); observeReveals(); bindTilt(); }
+    if (grid) {
+      if (!PW.sameLinks(grid, "a.vcard", videos.slice(1, 10))) grid.innerHTML = PW.cardsHTML(videos.slice(1, 10));
+      fitGrid(); observeReveals(); bindTilt();
+    }
     if (!liveNow) renderSlides();
     renderNext();
     renderGameChips();
@@ -169,9 +172,24 @@
   function renderSlides() {
     var stage = $(".hero .stage");
     if (!stage || !videos) return;
+    var wasLive = /live-player/.test(stage.className);
     stage.className = "stage";
+    if (!wasLive && PW.sameLinks(stage, "a.slide", videos.slice(0, 3))) { wakeSlides(); return; }
     stage.innerHTML = PW.slidesHTML(videos);
+    wakeSlides();
   }
+
+  /* Slides 2 and 3 carry their image in data-src so they do not slow the first one.
+     Load them once the page has finished loading. */
+  var pageLoaded = document.readyState === "complete";
+  function wakeSlides() {
+    if (!pageLoaded) return;
+    [].forEach.call(document.querySelectorAll(".hero .stage img[data-src]"), function (img) {
+      img.src = img.getAttribute("data-src");
+      img.removeAttribute("data-src");
+    });
+  }
+  if (!pageLoaded) window.addEventListener("load", function () { pageLoaded = true; setTimeout(wakeSlides, 300); });
 
   function renderNext() {
     var el = $("#next-text");
@@ -372,7 +390,9 @@
     if (!freeGamesList.length) { section.hidden = true; return; }
     showFreeGamesPage(1, false);
   }
-  if (isPreviewHost && /[?&]freegames=mock8(?:&|$)/.test(qs)) {
+  if (!$("#free-games")) {
+    /* No free-games section on this page, so skip the request (dest.js already reads the count). */
+  } else if (isPreviewHost && /[?&]freegames=mock8(?:&|$)/.test(qs)) {
     renderFreeGames(mockEightFreeGames());
   } else {
     getJson("/api/free-games").then(function (d) {

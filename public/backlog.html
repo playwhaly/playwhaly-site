@@ -45,22 +45,22 @@
     <p class="lede">看看目前玩了多少、正在玩什麼，也可以搜尋整份清單。</p>
   </div>
 
-  <section class="stats-grid" id="backlog-stats" hidden aria-label="遊戲庫統計">
+  <section class="stats-grid" id="backlog-stats" aria-label="遊戲庫統計" aria-busy="true">
     <div class="stat-card">
       <p class="lab">總數</p>
-      <p class="num" id="stat-total">0</p>
+      <p class="num" id="stat-total">…</p>
     </div>
     <div class="stat-card is-accent">
       <p class="lab">已完成</p>
-      <p class="num" id="stat-done">0</p>
+      <p class="num" id="stat-done">…</p>
     </div>
     <div class="stat-card">
       <p class="lab">遊玩中</p>
-      <p class="num" id="stat-play">0</p>
+      <p class="num" id="stat-play">…</p>
     </div>
     <div class="stat-card">
       <p class="lab">未玩</p>
-      <p class="num" id="stat-todo">0</p>
+      <p class="num" id="stat-todo">…</p>
     </div>
   </section>
 
@@ -73,6 +73,7 @@
     </section>
     <section class="panel" aria-labelledby="done-title">
       <h2 id="done-title">最近完成</h2>
+      <div class="now-empty" id="recent-done-loading"><strong>讀取中</strong>正在載入完成紀錄。</div>
       <ul class="done-list" id="recent-done"></ul>
       <p class="list-foot" id="recent-done-foot"></p>
     </section>
@@ -80,7 +81,13 @@
 
   <section class="block compact-grid" aria-labelledby="recent-videos-title">
     <div class="sec-head"><h2 id="recent-videos-title">最近影片</h2><a href="/#videos">更多影片 →</a></div>
-    <div class="grid" id="recent-videos" data-videos data-skip-latest="false" data-count="3"></div>
+    <div class="grid" id="recent-videos" data-videos data-skip-latest="false" data-count="3">
+<!-- backlog-videos:start -->
+<div class="cell reveal in" style="--d:0.0s"><a class="vcard" href="https://www.youtube.com/watch?v=RLLBnHS3gZo"><span class="thumb"><img src="https://i.ytimg.com/vi_webp/RLLBnHS3gZo/maxresdefault.webp" data-fb="https://i.ytimg.com/vi/RLLBnHS3gZo/hqdefault.jpg" onerror="this.onerror=null;this.src=this.dataset.fb" width="1280" height="720" alt="把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音：擴散 Whisper Mountain Outbreak》" decoding="async" loading="lazy"><span class="game" title="鬼山魔音：擴散 Whisper Mountain Outbreak">鬼山魔音：擴散 Whisper Mountain Outbreak</span><span class="play" aria-hidden="true"></span></span><span class="vtitle">把殭屍生存玩成搞笑片！損友尖叫聲比怪物還恐怖？《鬼山魔音：擴散 Whisper Mountain Outbreak》</span><span class="vdate">11月20日</span></a></div>
+<div class="cell reveal in" style="--d:0.1s"><a class="vcard" href="https://www.youtube.com/watch?v=gkBtjBj17FM"><span class="thumb"><img src="https://i.ytimg.com/vi_webp/gkBtjBj17FM/maxresdefault.webp" data-fb="https://i.ytimg.com/vi/gkBtjBj17FM/hqdefault.jpg" onerror="this.onerror=null;this.src=this.dataset.fb" width="1280" height="720" alt="靠猴子自動化生存！《島嶼生存者 The Survivalists》開荒到通關全紀錄！" decoding="async" loading="lazy"><span class="game" title="島嶼生存者 The Survivalists">島嶼生存者 The Survivalists</span><span class="play" aria-hidden="true"></span></span><span class="vtitle">靠猴子自動化生存！《島嶼生存者 The Survivalists》開荒到通關全紀錄！</span><span class="vdate">11月6日</span></a></div>
+<div class="cell reveal in" style="--d:0.2s"><a class="vcard" href="https://www.youtube.com/watch?v=o8PfE9eV5Qg"><span class="thumb"><img src="https://i.ytimg.com/vi_webp/o8PfE9eV5Qg/maxresdefault.webp" data-fb="https://i.ytimg.com/vi/o8PfE9eV5Qg/hqdefault.jpg" onerror="this.onerror=null;this.src=this.dataset.fb" width="1280" height="720" alt="《核心守護者 Core Keeper》玩到最後才發現…這遊戲根本停不下來！" decoding="async" loading="lazy"><span class="game" title="核心守護者 Core Keeper">核心守護者 Core Keeper</span><span class="play" aria-hidden="true"></span></span><span class="vtitle">《核心守護者 Core Keeper》玩到最後才發現…這遊戲根本停不下來！</span><span class="vdate">10月23日</span></a></div>
+<!-- backlog-videos:end -->
+    </div>
   </section>
 
   <section class="panel library" aria-labelledby="lib-title">

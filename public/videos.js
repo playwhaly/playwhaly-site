@@ -23,7 +23,8 @@
       return;
     }
     if (window.PW && typeof PW.cardsHTML === "function") {
-      mount.innerHTML = PW.cardsHTML(list);
+      /* The page may already carry these cards baked in (no layout shift). Keep them if nothing changed. */
+      if (!(PW.sameLinks && PW.sameLinks(mount, "a.vcard", list))) mount.innerHTML = PW.cardsHTML(list);
       mount.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("in"); });
       return;
     }
