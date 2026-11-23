@@ -92,4 +92,8 @@ const clamped = ctx.PWGames.pageSlice([1, 2, 3], 99, 50);
 assert.equal(clamped.page, 1);
 assert.deepEqual(clamped.items, [1, 2, 3]);
 
+assert.equal(isAllowedCsvUrl("https://doc-0s-bc-sheets.googleusercontent.com/pub/abc/def?output=csv"), true);
+assert.equal(isAllowedCsvUrl("https://googleusercontent.com.evil.example/x.csv"), false);
+assert.equal(isAllowedCsvUrl("https://evilgoogleusercontent.com/x.csv"), false);
+
 console.log("all backlog tests passed");

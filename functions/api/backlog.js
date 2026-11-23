@@ -120,7 +120,9 @@ export function isAllowedCsvUrl(raw) {
     const u = new URL(String(raw || ""));
     if (u.protocol !== "https:") return false;
     if (u.username || u.password) return false;
-    return ALLOWED_HOSTS.has(u.hostname.toLowerCase());
+    const host = u.hostname.toLowerCase();
+    // Published Google Sheets CSVs redirect to doc-xx-...-sheets.googleusercontent.com
+    return ALLOWED_HOSTS.has(host) || host.endsWith(".googleusercontent.com");
   } catch {
     return false;
   }
