@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>限時免費｜威利 Whaly</title>
 <meta name="theme-color" content="#FFF7EE">
-<meta name="description" content="官方商店限時免費的遊戲。領取連結只會連到官方商店。">
+<meta name="description" content="官方商店限時免費的遊戲和遊戲內道具。領取連結只會連到官方商店或遊戲官方網站。">
 <link rel="canonical" href="https://playwhaly.com/free">
 <meta property="og:title" content="限時免費｜威利 Whaly">
-<meta property="og:description" content="官方商店限時免費的遊戲。領取連結只會連到官方商店。">
+<meta property="og:description" content="官方商店限時免費的遊戲和遊戲內道具。領取連結只會連到官方商店或遊戲官方網站。">
 <meta property="og:url" content="https://playwhaly.com/free">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="威利 Whaly">
@@ -17,7 +17,7 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="限時免費｜威利 Whaly">
-<meta name="twitter:description" content="官方商店限時免費的遊戲。領取連結只會連到官方商店。">
+<meta name="twitter:description" content="官方商店限時免費的遊戲和遊戲內道具。領取連結只會連到官方商店或遊戲官方網站。">
 <meta name="twitter:image" content="https://playwhaly.com/og-image-1200x630.png">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -42,7 +42,7 @@
   <div class="page-kicker">
     <p class="eyebrow">官方商店</p>
     <h1>限時免費</h1>
-    <p class="lede">現在可以免費領取的遊戲。領取按鈕只會連到官方商店。<a href="/free-games.xml">訂閱 RSS</a></p>
+    <p class="lede">現在可以免費領取的遊戲和道具。領取按鈕只會連到官方商店或遊戲官方網站。<a href="/free-games.xml">訂閱 RSS</a></p>
   </div>
 
   <section class="free-brand" aria-label="關於威利 Whaly">
@@ -54,40 +54,50 @@
       已整理 <span id="claim-count-num" class="free-count-num"></span> 款免費遊戲
     </p>
     <section class="follow-card" id="follow-card" aria-labelledby="follow-title">
-      <h3 id="follow-title">追蹤免費遊戲通知</h3>
+      <h2 id="follow-title">追蹤免費遊戲通知</h2>
       <p class="follow-sub">有新的免費遊戲就會第一時間通知你～</p>
       <div class="follow-row" id="follow-row"></div>
     </section>
   </section>
 
-  <div class="tools free-tools">
+  <div class="tools free-tools" id="free-store-chips" role="group" aria-label="依商店篩選">
     <button type="button" class="filter-chip is-on" data-store-filter="" aria-pressed="true">全部商店</button>
-    <button type="button" class="filter-chip" data-store-filter="epic" aria-pressed="false">Epic</button>
-    <button type="button" class="filter-chip" data-store-filter="steam" aria-pressed="false">Steam</button>
-    <button type="button" class="filter-chip" data-store-filter="gog" aria-pressed="false">GOG</button>
-    <button type="button" class="filter-chip" data-store-filter="itch" aria-pressed="false">itch.io</button>
-    <span class="tools-gap" aria-hidden="true"></span>
-    <button type="button" class="filter-chip is-on" data-kind-filter="" aria-pressed="true">全部類型</button>
-    <button type="button" class="filter-chip" data-kind-filter="game" aria-pressed="false">遊戲</button>
-    <button type="button" class="filter-chip" data-kind-filter="dlc" aria-pressed="false">DLC</button>
   </div>
 
   <p class="free-empty" id="free-empty" hidden>目前沒有符合的免費遊戲。</p>
 
-  <section class="free-section" data-free-section="current" aria-labelledby="free-now-title">
-    <h2 id="free-now-title">現在免費</h2>
-    <div class="free-now-grid" id="free-now"></div>
+  <section class="free-group" id="free-games-group" aria-labelledby="free-games-title">
+    <h2 id="free-games-title" class="free-group-title">免費遊戲 <span class="free-group-count" id="free-games-count"></span></h2>
+    <div class="free-section" data-free-section="current">
+      <h3 class="free-sub-title">現在可領</h3>
+      <div class="free-now-grid" id="free-now"></div>
+    </div>
+    <div class="free-section" data-free-section="upcoming" hidden>
+      <h3 class="free-sub-title">即將推出</h3>
+      <p class="free-sec-lead">即將開始的免費遊戲，還沒開放領取。</p>
+      <div class="free-dim-grid" id="free-upcoming"></div>
+    </div>
   </section>
 
-  <section class="free-section" data-free-section="upcoming" hidden aria-labelledby="free-next-title">
-    <h2 id="free-next-title">下週免費</h2>
-    <p class="free-sec-lead">Epic 即將開始的免費遊戲。還沒開放領取。</p>
-    <div class="free-dim-grid" id="free-upcoming"></div>
-  </section>
+  <details class="free-group free-loot" id="free-loot-group" hidden>
+    <summary class="free-loot-summary">
+      <h2 class="free-group-title">免費道具 <span class="free-group-count" id="free-loot-count"></span></h2>
+      <span class="free-loot-hint">遊戲內道具和加值內容，點開看看</span>
+    </summary>
+    <p class="free-sec-lead">大多需要先有本體遊戲。領取連結只會連到官方商店或遊戲官方網站。</p>
+    <div class="free-section" data-free-section="loot-current">
+      <h3 class="free-sub-title">現在可領</h3>
+      <div class="free-now-grid free-loot-grid" id="free-loot-now"></div>
+    </div>
+    <div class="free-section" data-free-section="loot-upcoming" hidden>
+      <h3 class="free-sub-title">即將推出</h3>
+      <div class="free-dim-grid" id="free-loot-upcoming"></div>
+    </div>
+  </details>
 
-  <section class="free-section" data-free-section="ended" hidden aria-labelledby="free-ended-title">
+  <section class="free-section free-ended-block" data-free-section="ended" hidden aria-labelledby="free-ended-title">
     <h2 id="free-ended-title">最近結束</h2>
-    <p class="free-sec-lead">最近已結束的項目，只留給大家對照，不能再領。</p>
+    <p class="free-sec-lead">最近已結束的免費遊戲和道具，只留給大家對照，不能再領。</p>
     <div class="free-dim-grid" id="free-ended"></div>
   </section>
 

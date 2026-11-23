@@ -192,7 +192,7 @@
     .catch(function () { renderNext(); }); // keep the baked-in fallback
 
   /* ---- Limited-time free-to-claim games (/api/free-games). The section stays hidden if the list is empty or the request fails. ---- */
-  var STORE_HOST = /^(store\.epicgames\.com|www\.epicgames\.com|store\.steampowered\.com|www\.steampowered\.com|www\.gog\.com|gog\.com|itch\.io|freebies\.indiegala\.com|www\.indiegala\.com|indiegala\.com|store\.onstove\.com|www\.onstove\.com)$/;
+  var STORE_HOST = /^(store\.epicgames\.com|www\.epicgames\.com|store\.steampowered\.com|www\.steampowered\.com|www\.gog\.com|gog\.com|itch\.io|freebies\.indiegala\.com|www\.indiegala\.com|indiegala\.com|store\.onstove\.com|www\.onstove\.com|www\.meta\.com|store\.ubisoft\.com|www\.ubisoft\.com|www\.ea\.com|(?:us\.|eu\.)?shop\.battle\.net|store\.playstation\.com|www\.xbox\.com|www\.nintendo\.com)$/;
   function isClaimUrl(url) {
     try {
       var u = new URL(url);
@@ -204,7 +204,8 @@
   }
   function isFreePayload(d) {
     return d && Array.isArray(d.games) && d.games.every(function (g) {
-      return g && typeof g.title === "string" && g.title.trim() && isClaimUrl(g.claimUrl) && isFinite(Date.parse(g.endsAt));
+      /* endsAt is optional: some offers have no published end date. */
+      return g && typeof g.title === "string" && g.title.trim() && isClaimUrl(g.claimUrl) && (g.endsAt == null || isFinite(Date.parse(g.endsAt)));
     });
   }
   var freeGamesList = [];

@@ -20,6 +20,9 @@ import {
   toRss,
   loadFreeGames,
   onRequest,
+  isOfficialClaimUrl,
+  isSteamPaidNow,
+  isMobileOnly,
 } from "../functions/api/free-games.js";
 
 const NOW = Date.parse("2026-11-22T00:00:00.000Z");
@@ -266,10 +269,30 @@ const gpList = [
 const candidates = gamerPowerCandidates(gpList, NOW);
 assert.deepEqual(
   candidates.map((c) => c.title),
-  ["Mark of the Deep", "Contractor: The Clean Up Part 2", "Free itch.io Games Bundle"],
-  "keep Epic and GOG from GamerPower; skip keys, loot, no end date, and adult titles",
+  ["Mark of the Deep", "Contractor: The Clean Up Part 2", "Free itch.io Games Bundle", "My Darkest Witch", "Loot Pack"],
+  "keep games (also without an end date) and loot; skip game keys and adult titles",
 );
 assert.equal(candidates[2].kind, "bundle");
+assert.equal(candidates[3].endsAt, "", "N/A end date is kept with no endsAt");
+assert.equal(candidates[4].kind, "dlc");
+
+const extraCandidates = gamerPowerCandidates(
+  [
+    gpItem({ id: 7001, title: "Lonesome Village (Mobile) Giveaway", platforms: "Android, iOS", open_giveaway_url: "https://www.gamerpower.com/open/m" }),
+    gpItem({ id: 7002, title: "Phone Only Game Giveaway", platforms: "Android", open_giveaway_url: "https://www.gamerpower.com/open/m2" }),
+    gpItem({ id: 7003, title: "Destiny 2: Be True Emblem Code", type: "DLC", platforms: "PC, Steam", description: "CODE: AAA-BBB", open_giveaway_url: "https://www.gamerpower.com/open/c" }),
+    gpItem({ id: 7004, title: "Old Steam DLC Giveaway", type: "DLC", platforms: "PC, Steam", end_date: "2020-05-31 23:59:00", open_giveaway_url: "https://www.gamerpower.com/open/old" }),
+    gpItem({ id: 7005, title: "Fathom Reach Playtest Steam Key Giveaway", type: "Early Access", platforms: "PC, Steam", open_giveaway_url: "https://www.gamerpower.com/open/p" }),
+    gpItem({ id: 7006, title: "Everwind AW-51 Pack Steam Key Giveaway", type: "DLC", platforms: "PC, Steam", end_date: "N/A", open_giveaway_url: "https://www.gamerpower.com/open/aw" }),
+    gpItem({ id: 7007, title: "Sharknado VR (Rift) Giveaway", platforms: "VR", end_date: "N/A", open_giveaway_url: "https://www.gamerpower.com/open/vr" }),
+  ],
+  NOW,
+);
+assert.deepEqual(
+  extraCandidates.map((c) => c.title),
+  ["Sharknado VR", "Everwind AW-51 Pack"],
+  "mobile-only, code listings, expired and playtests are dropped; titles lose Key/Giveaway/(Rift)",
+);
 assert.equal(
   candidates.some((c) => /hentai|nsfw|adult/i.test(c.title)),
   false,
@@ -427,7 +450,7 @@ for (const game of loaded.payload.games) {
 const mark = loaded.payload.games.find((g) => g.claimUrl.includes("mark-of-the-deep-f7dc08"));
 assert.equal(Boolean(mark), true, "GamerPower Epic entry present in the official feed is kept once");
 assert.equal(mark.title, "Mark of the Deep");
-assert.equal(mark.image, "https://cdn1.epicgames.com/offer/ns1/wide.jpg", "use Epic image when the feed matches");
+assert.equal(mark.image, "https://cdn1.epicgames.com/offer/ns1/wide.jpg?resize=1&w=854&quality=medium", "use the resized Epic image when the feed matches");
 assert.equal(mark.endsAt, "2026-11-26T16:00:00.000Z", "use Epic endDate when the feed matches");
 assert.equal(mark.platform, "Epic 遊戲商店");
 assert.equal(mark.store, "epic");
@@ -694,3 +717,58 @@ assert.equal(secondHist.seenCount, 2);
 assert.equal(secondHist.ended.length, 1);
 assert.equal(secondHist.ended[0].title, "Alpha");
 console.log("upcoming and history tests passed");
+
+// Loot/DLC, no end date, mobile and Steam price checks
+assert.equal(isOfficialClaimUrl("https://freebundle.bethesda.net/en-EU", "dlc"), true);
+assert.equal(isOfficialClaimUrl("https://freebundle.bethesda.net/en-EU", "game"), false, "publisher pages only count for free items");
+assert.equal(isOfficialClaimUrl("https://www.alienwarearena.com/ucf/show/1", "dlc"), false);
+assert.equal(isOfficialClaimUrl("https://id.amazongames.com/en-gb", "dlc"), false, "Amazon / Prime Gaming excluded");
+assert.equal(isOfficialClaimUrl("https://track.wargaming-aff.com/x", "dlc"), false, "affiliate trackers excluded");
+assert.equal(isOfficialClaimUrl("https://www.meta.com/en-gb/experiences/pcvr/x/1/", "game"), true);
+assert.equal(isMobileOnly({ platforms: "Android, iOS" }), true);
+assert.equal(isMobileOnly({ platforms: "PC, Android, iOS" }), false);
+assert.equal(isSteamPaidNow({ price_overview: { final: 1999 } }), true);
+assert.equal(isSteamPaidNow({ is_free: true }), false);
+assert.equal(isSteamPaidNow({ price_overview: { final: 0, discount_percent: 100 } }), false);
+const lootRedirects = {
+  "https://www.gamerpower.com/open/bethesda": "https://freebundle.bethesda.net/en-EU",
+  "https://www.gamerpower.com/open/aw-dlc": "https://na.alienwarearena.com/ucf/show/1",
+};
+const lootFetch = (url) =>
+  lootRedirects[String(url)]
+    ? new Response("", { status: 301, headers: { location: lootRedirects[String(url)] } })
+    : new Response("ok", { status: 200 });
+assert.equal(await resolveStoreUrl("https://www.gamerpower.com/open/bethesda", lootFetch, undefined, "dlc"), "https://freebundle.bethesda.net/en-EU");
+assert.equal(await resolveStoreUrl("https://www.gamerpower.com/open/bethesda", lootFetch, undefined, "game"), "");
+assert.equal(await resolveStoreUrl("https://www.gamerpower.com/open/aw-dlc", lootFetch, undefined, "dlc"), "");
+const mixed = mergeGames([[
+  { title: "No End", store: "indiegala", platform: "IndieGala", endsAt: "", claimUrl: "https://freebies.indiegala.com/leaper", source: "gamerpower" },
+  { title: "Soon", store: "epic", platform: "Epic 遊戲商店", endsAt: "2026-11-25T00:00:00.000Z", claimUrl: "https://store.epicgames.com/zh-Hant/p/soon", source: "gamerpower" },
+  { title: "Bundle Items", store: "freebundle.bethesda.net", platform: "Bethesda", endsAt: "2026-12-09T23:59:00.000Z", claimUrl: "https://freebundle.bethesda.net/en-EU", source: "gamerpower", kind: "dlc" },
+  { title: "Fake DLC", store: "x", platform: "X", endsAt: "", claimUrl: "https://www.alienwarearena.com/x", source: "gamerpower", kind: "dlc" },
+]], NOW);
+assert.deepEqual(mixed.map((g) => g.title), ["Soon", "Bundle Items", "No End"], "dated first, undated last, unofficial dropped");
+assert.equal("endsAt" in mixed[2], false);
+assert.equal(isPayload({ games: [mixed[0], mixed[2]], loot: [mixed[1]] }), true);
+assert.equal(toRss({ games: [mixed[2]] }).includes("<pubDate>"), false);
+const kv2store = new Map();
+const kv2 = { async get(k) { return kv2store.has(k) ? JSON.parse(kv2store.get(k)) : null; }, async put(k, v) { kv2store.set(k, v); } };
+const h1 = await updateFreeGamesHistory(kv2, [
+  { id: "g1", title: "Game", store: "steam", claimUrl: "https://store.steampowered.com/app/1/" },
+  { id: "l1", title: "Item", store: "steam", claimUrl: "https://store.steampowered.com/app/2/", kind: "dlc" },
+], NOW);
+assert.equal(h1.seenCount, 1, "free items are not counted as games");
+const h2 = await updateFreeGamesHistory(kv2, [], NOW + 1000);
+assert.deepEqual(h2.ended.map((g) => g.kind).sort(), ["dlc", "game"], "ended list keeps both kinds for the 遊戲/道具 tag");
+const thirdParty = gamerPowerCandidates([
+  gpItem({ id: 8001, title: "Some Skin Key Giveaway", type: "DLC", description: "Claim it on Alienware Arena." }),
+  gpItem({ id: 8002, title: "Real Item", type: "DLC", instructions: "Log in to your Bethesda account." }),
+], NOW);
+assert.deepEqual(thirdParty.map((c) => c.title), ["Real Item"], "listings that name a key site are skipped before resolving");
+const budget = gamerPowerCandidates(
+  Array.from({ length: 60 }, (_, i) => gpItem({ id: 9000 + i, title: "Item " + i, type: "DLC" })).concat([gpItem({ id: 9999, title: "Late Game" })]),
+  NOW,
+);
+assert.equal(budget.length, 36, "resolve budget is capped");
+assert.equal(budget[0].title, "Late Game", "games are resolved before items");
+console.log("loot, no-end and mobile tests passed");

@@ -190,11 +190,11 @@ nav{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end}
 
 .back-grid{
   display:grid;
-  grid-template-columns:1fr 1.2fr;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);
   gap:1.4rem;
   margin:0 0 1.6rem;
 }
-@media (max-width:900px){.back-grid{grid-template-columns:1fr}}
+@media (max-width:900px){.back-grid{grid-template-columns:minmax(0,1fr)}}
 
 .now-empty{
   display:flex;
@@ -213,7 +213,7 @@ nav{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end}
 .done-list{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
 .done-list li{
   display:grid;
-  grid-template-columns:10px 1fr auto;
+  grid-template-columns:10px minmax(0,1fr) auto;
   gap:.75rem;
   align-items:center;
   background:var(--bg);
@@ -232,7 +232,7 @@ nav{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end}
 .gz{color:var(--ink)}
 .ge{display:inline;color:var(--muted);font-weight:700;font-size:.86em;margin-left:.25rem}
 
-.panel h3{margin:0 0 .9rem;font-size:1.05rem}
+.panel h3,.back-grid .panel h2{margin:0 0 .9rem;font-size:1.05rem}
 
 /* status chips */
 .status-chip{
@@ -576,7 +576,7 @@ select.select{padding-right:1.6rem;background-image:linear-gradient(45deg,transp
 }
 .free-follow p{margin:0;font-weight:700;color:var(--ink)}
 .free-follow #discord-btn{margin:0;min-height:42px;white-space:nowrap}
-.free-tools{margin:0 0 1.4rem}
+.free-tools{margin:0 0 1.4rem;min-height:2.1rem}
 .tools-gap{width:.4rem}
 .free-empty{margin:0 0 1.2rem;color:var(--muted);font-weight:600}
 .free-section{margin:0 0 2.1rem}
@@ -645,6 +645,42 @@ select.select{padding-right:1.6rem;background-image:linear-gradient(45deg,transp
 }
 .wrap{padding-bottom:5.5rem}
 
+/* /free groups: 免費遊戲 (open) and 免費道具 (collapsed <details>) */
+.free-group{margin:0 0 2.2rem}
+.free-group-title{margin:0 0 .9rem;font-size:1.35rem}
+.free-group-count{color:var(--muted);font-weight:700;font-size:.8em}
+.free-sub-title{margin:0 0 .7rem;font-size:1rem;color:var(--link);letter-spacing:.04em}
+.free-group .free-section{margin:0 0 1.6rem}
+.free-now-grid.is-many{grid-template-columns:repeat(3,minmax(0,1fr))}
+.free-loot{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:0 1.1rem;
+}
+.free-loot[open]{padding-bottom:.6rem}
+.free-loot-summary{
+  display:flex;align-items:center;flex-wrap:wrap;gap:.35rem 1rem;
+  cursor:pointer;list-style:none;padding:1rem 2.2rem 1rem 0;position:relative;border-radius:var(--radius);
+}
+.free-loot-summary::-webkit-details-marker{display:none}
+.free-loot-summary::after{
+  content:"";position:absolute;right:.35rem;top:50%;width:.6rem;height:.6rem;
+  border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);
+  transform:translateY(-70%) rotate(45deg);transition:transform .2s;
+}
+.free-loot[open] .free-loot-summary::after{transform:translateY(-30%) rotate(-135deg)}
+.free-loot-summary:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+.free-loot-summary .free-group-title{margin:0}
+.free-loot-hint{color:var(--muted);font-size:.88rem;font-weight:600}
+.free-loot-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.free-loot .free-card-lg .free-title{font-size:1rem}
+@media (max-width:900px){
+  .free-now-grid.is-many,.free-loot-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:640px){
+  .free-now-grid.is-many,.free-loot-grid{grid-template-columns:1fr}
+  .free-loot{padding:0 .8rem}
+}
+
 
 /* Follow section (免費通知) */
 .follow-card{
@@ -655,9 +691,9 @@ select.select{padding-right:1.6rem;background-image:linear-gradient(45deg,transp
   border-radius:20px;
   box-shadow:0 6px 20px rgba(100,112,200,.08);
 }
-.follow-card h3{margin:0 0 .2rem;font-size:1.05rem}
-.follow-sub{margin:0 0 1rem;font-size:.86rem;color:#8a86a3;font-weight:600}
-.follow-row{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center}
+.follow-card h2,.follow-card h3{margin:0 0 .2rem;font-size:1.05rem}
+.follow-sub{margin:0 0 1rem;font-size:.86rem;color:#6f6b8a;font-weight:600}
+.follow-row{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center;min-height:42px}
 .follow-pill{
   display:inline-flex;align-items:center;gap:.5rem;
   padding:.55rem 1rem;border-radius:999px;

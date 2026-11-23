@@ -1,12 +1,15 @@
 const FETCH_MS = 8000;
 const CACHE_SECONDS = 3600;
 const EMPTY_CACHE_SECONDS = 300;
-const CACHE_KEY = "https://playwhaly.com/api/free-games";
+// Bump the version when the payload shape or filters change, so the edge cache does not serve the old list for an hour.
+const CACHE_KEY = "https://playwhaly.com/api/free-games?v=2";
 const UA = "playwhaly.com/free-games (https://playwhaly.com/)";
 const EPIC_URL =
   "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=zh-Hant&country=SG&allowCountries=SG";
 const EPIC_GRAPHQL = "https://store.epicgames.com/graphql";
-const GAMERPOWER_URL = "https://www.gamerpower.com/api/giveaways?platform=pc&type=game";
+// All giveaway types: games and in-game loot/DLC are split later, and every claim
+// link must still resolve to an official store or publisher page.
+const GAMERPOWER_URL = "https://www.gamerpower.com/api/giveaways";
 const STEAM_APPDETAILS = "https://store.steampowered.com/api/appdetails?appids=";
 
 const STORE_LABELS = {
@@ -16,6 +19,24 @@ const STORE_LABELS = {
   itch: "itch.io",
   indiegala: "IndieGala",
   stove: "STOVE",
+  meta: "Meta（PC VR）",
+  ubisoft: "Ubisoft",
+  ea: "EA",
+  battlenet: "Battle.net",
+  playstation: "PlayStation",
+  xbox: "Xbox",
+  nintendo: "Nintendo",
+};
+
+// Official publisher pages that may host a free in-game item or DLC claim.
+// Third-party key sites, hardware-vendor promos, affiliate trackers and Amazon /
+// Prime Gaming are deliberately absent.
+const PUBLISHER_HOSTS = {
+  "www.thewitcher.com": "CD PROJEKT RED",
+  "freebundle.bethesda.net": "Bethesda",
+  "www.paradoxinteractive.com": "Paradox",
+  "www.minecraft.net": "Minecraft",
+  "www.overkillsoftware.com": "OVERKILL",
 };
 
 const AFFILIATE_PARAM = /^(ref|referrer|referer|aff|affiliate|partner|campaign|tap_s|tap_a|fbclid|gclid|mc_eid)|^(utm_)/i;
@@ -68,8 +89,9 @@ export function unwrapTitle(title) {
 
 export function cleanGamerPowerTitle(title) {
   return unwrapTitle(title)
-    .replace(/\s*\((?:Epic Games|Steam|GOG|itch\.io|IndieGala|Indiegala|Stove)\)\s*/gi, " ")
+    .replace(/\s*\((?:Epic Games|Steam|GOG|itch\.io|IndieGala|Indiegala|Stove|Rift|Meta|PC|DLC)\)\s*/gi, " ")
     .replace(/\s+Giveaway\s*$/i, "")
+    .replace(/\s+(?:Steam\s+)?Keys?\s*$/i, "")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -129,7 +151,36 @@ export function storeFromHost(host) {
   if (h === "itch.io" || h.endsWith(".itch.io")) return "itch";
   if (h === "freebies.indiegala.com" || h === "www.indiegala.com" || h === "indiegala.com") return "indiegala";
   if (h === "store.onstove.com" || h === "www.onstove.com") return "stove";
+  if (h === "www.meta.com") return "meta";
+  if (h === "store.ubisoft.com" || h === "www.ubisoft.com") return "ubisoft";
+  if (h === "www.ea.com") return "ea";
+  if (h === "shop.battle.net" || h === "us.shop.battle.net" || h === "eu.shop.battle.net") return "battlenet";
+  if (h === "store.playstation.com") return "playstation";
+  if (h === "www.xbox.com") return "xbox";
+  if (h === "www.nintendo.com") return "nintendo";
   return "";
+}
+
+export function publisherFromHost(host) {
+  const h = String(host || "").toLowerCase();
+  return Object.prototype.hasOwnProperty.call(PUBLISHER_HOSTS, h) ? h : "";
+}
+
+export function claimSourceLabel(store) {
+  return STORE_LABELS[store] || PUBLISHER_HOSTS[store] || store;
+}
+
+// Games need an official store page. Free items/DLC may also use an official publisher page.
+export function isOfficialClaimUrl(href, kind) {
+  if (isOfficialStoreUrl(href)) return true;
+  if (kind !== "dlc") return false;
+  try {
+    const url = new URL(href);
+    if (url.protocol !== "https:") return false;
+    return Boolean(publisherFromHost(url.hostname));
+  } catch {
+    return false;
+  }
 }
 
 export function isOfficialStoreUrl(href) {
@@ -152,7 +203,7 @@ export function sanitizeStoreUrl(href) {
   }
   if (url.protocol !== "https:") return "";
   if (isGamerPowerHost(url.hostname)) return "";
-  const store = storeFromHost(url.hostname);
+  const store = storeFromHost(url.hostname) || publisherFromHost(url.hostname);
   if (!store) return "";
   for (const key of [...url.searchParams.keys()]) {
     if (AFFILIATE_PARAM.test(key)) url.searchParams.delete(key);
@@ -243,15 +294,27 @@ function currentFreeOffer(element, now) {
   return null;
 }
 
+// Epic's CDN serves 1 to 3 MB originals. Its own resize parameters bring a card image to about 60 KB.
+export function smallEpicImage(url) {
+  try {
+    const u = new URL(url);
+    if (u.hostname !== "cdn1.epicgames.com" || u.search) return url;
+    u.search = "?resize=1&w=854&quality=medium";
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function epicImage(element) {
   const images = (element && element.keyImages) || [];
   const prefer = ["OfferImageWide", "DieselStoreFrontWide", "Thumbnail", "OfferImageTall"];
   for (const type of prefer) {
     const hit = images.find((img) => img && img.type === type && isHttpsImageUrl(img.url));
-    if (hit) return hit.url;
+    if (hit) return smallEpicImage(hit.url);
   }
   const any = images.find((img) => img && isHttpsImageUrl(img.url) && img.type !== "heroCarouselVideo");
-  return any ? any.url : "";
+  return any ? smallEpicImage(any.url) : "";
 }
 
 export function parseEpicPromotions(data, nowMs) {
@@ -338,14 +401,47 @@ export function parseEpicUpcoming(data, nowMs) {
   return games;
 }
 
-function gamerPowerKind(item) {
-  const type = String((item && item.type) || "");
+export function isMobileOnly(item) {
+  const platforms = String((item && item.platforms) || "")
+    .split(",")
+    .map((p) => p.trim().toLowerCase())
+    .filter(Boolean);
+  const title = String((item && item.title) || "");
+  if (/\(mobile\)|mobile version/i.test(title)) return true;
+  if (!platforms.length) return false;
+  return platforms.every((p) => p === "android" || p === "ios");
+}
+
+// Items whose value is a code printed on the listing page. Showing that code would mean
+// copying the listing text, so they are skipped.
+function isCodeListing(item) {
+  const title = String((item && item.title) || "");
+  const desc = String((item && item.description) || "");
+  if (/\bcodes?\b/i.test(title)) return true;
+  return /\bcodes?\s*[:：]|following key code|codes? below|active codes|promo codes/i.test(desc);
+}
+
+// Listings that GamerPower itself says are claimed through a key site, hardware-vendor
+// promo or Amazon. Skipping them before any redirect is followed keeps the Function well
+// under the Cloudflare subrequest limit (50 per request on the free plan).
+const THIRD_PARTY_HINT = /alienware|steelseries|mmobomb|dungeonloot|gamercoins|mmo-it|prime gaming|amazon games|amazon prime|amd account/i;
+const MAX_RESOLVE = 36;
+
+export function isThirdPartyListing(item) {
+  const hay = [item && item.title, item && item.description, item && item.instructions].map((v) => String(v || "")).join(" ");
+  return THIRD_PARTY_HINT.test(hay);
+}
+
+export function gamerPowerKind(item) {
+  const type = String((item && item.type) || "").trim();
   const title = String((item && item.title) || "");
   const hay = (type + " " + title).toLowerCase();
-  if (/\b(loot|dlc)\b/.test(hay) || /in-game/.test(hay)) return "";
+  if (isMobileOnly(item)) return "";
   if (/\bbeta\b/.test(hay) || /playtest/.test(hay)) return "";
-  if (/\bkey\b/.test(hay) || /免費周末|free weekend/.test(hay)) return "";
-  if (!/^game$/i.test(type.trim())) return "";
+  if (/免費周末|free weekend/.test(hay)) return "";
+  if (/^(dlc|loot)$/i.test(type)) return isCodeListing(item) ? "" : "dlc";
+  if (!/^game$/i.test(type)) return "";
+  if (/\bkey\b/i.test(title)) return "";
   if (/bundle/i.test(title) || /遊戲包|組合包/.test(title)) return "bundle";
   return "game";
 }
@@ -358,9 +454,11 @@ export function gamerPowerCandidates(items, nowMs) {
     if (!item || String(item.status || "").toLowerCase() !== "active") continue;
     const kind = gamerPowerKind(item);
     if (!kind) continue;
+    if (isThirdPartyListing(item)) continue;
     if (isAdultGamerPowerText(item.title, item.description)) continue;
     const endMs = parseGamerPowerEnd(item.end_date);
-    if (!Number.isFinite(endMs) || endMs <= now) continue;
+    // "N/A" means no published end date: keep it and show 限時 without a countdown.
+    if (Number.isFinite(endMs) && endMs <= now) continue;
     const title = cleanGamerPowerTitle(item.title);
     const openUrl = item.open_giveaway_url || item.open_giveaway || "";
     if (!title || !openUrl) continue;
@@ -369,17 +467,21 @@ export function gamerPowerCandidates(items, nowMs) {
       id: "gamerpower:" + (item.id != null ? String(item.id) : title),
       title,
       image,
-      endsAt: new Date(endMs).toISOString(),
+      endsAt: Number.isFinite(endMs) ? new Date(endMs).toISOString() : "",
       openUrl,
       source: "gamerpower",
       kind,
     });
   }
-  return out;
+  // Games first, then items, so a long item list can never crowd games out of the budget.
+  const games = out.filter((c) => c.kind !== "dlc");
+  const loot = out.filter((c) => c.kind === "dlc");
+  return games.concat(loot).slice(0, MAX_RESOLVE);
 }
 
-export async function resolveStoreUrl(openUrl, fetchImpl, baseHref) {
-  if (isOfficialStoreUrl(openUrl)) return sanitizeStoreUrl(openUrl);
+export async function resolveStoreUrl(openUrl, fetchImpl, baseHref, kind) {
+  const ok = (href) => isOfficialClaimUrl(href, kind);
+  if (ok(openUrl)) return sanitizeStoreUrl(openUrl);
   let current;
   try {
     current = new URL(openUrl, baseHref || "https://www.gamerpower.com/").href;
@@ -387,7 +489,7 @@ export async function resolveStoreUrl(openUrl, fetchImpl, baseHref) {
     return "";
   }
   for (let hop = 0; hop < 4; hop++) {
-    if (isOfficialStoreUrl(current)) return sanitizeStoreUrl(current);
+    if (ok(current)) return sanitizeStoreUrl(current);
     if (!isGamerPowerHost(hostOf(current)) && hop > 0) return "";
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), FETCH_MS);
@@ -409,27 +511,30 @@ export async function resolveStoreUrl(openUrl, fetchImpl, baseHref) {
         continue;
       }
       // No redirect: only keep the URL if this hop already landed on an official store.
-      return isOfficialStoreUrl(current) ? sanitizeStoreUrl(current) : "";
+      return ok(current) ? sanitizeStoreUrl(current) : "";
     } catch {
       return "";
     } finally {
       clearTimeout(timer);
     }
   }
-  return isOfficialStoreUrl(current) ? sanitizeStoreUrl(current) : "";
+  return ok(current) ? sanitizeStoreUrl(current) : "";
 }
 
 async function resolveGamerPowerGames(candidates, fetchImpl) {
   const resolved = await Promise.all(
     candidates.map(async (item) => {
-      const claimUrl = await resolveStoreUrl(item.openUrl, fetchImpl);
+      const claimUrl = await resolveStoreUrl(item.openUrl, fetchImpl, undefined, item.kind);
       if (!claimUrl || /gamerpower/i.test(claimUrl)) return null;
-      const store = storeFromHost(hostOf(claimUrl));
+      const host = hostOf(claimUrl);
+      const store = storeFromHost(host) || (item.kind === "dlc" ? publisherFromHost(host) : "");
       if (!store) return null;
+      // Epic's mobile store is not a PC claim.
+      if (store === "epic" && /\/mobile\b/i.test(new URL(claimUrl).pathname)) return null;
       return {
         id: item.id,
         title: item.title,
-        platform: STORE_LABELS[store] || store,
+        platform: claimSourceLabel(store),
         store,
         image: item.image,
         endsAt: item.endsAt,
@@ -448,6 +553,36 @@ export function isSteamAdultApp(details) {
   if (Number.isFinite(age) && age >= 18) return true;
   const ids = (details.content_descriptors && details.content_descriptors.ids) || [];
   return ids.some((id) => Number(id) === 3 || Number(id) === 4);
+}
+
+// Steam says this app still costs money, so the free offer is over.
+export function isSteamPaidNow(details) {
+  const price = details && details.price_overview;
+  if (!price || typeof price !== "object") return false;
+  return Number(price.final) > 0;
+}
+
+export async function fetchSteamDetails(claimUrl, fetchImpl) {
+  const appid = steamAppIdFromUrl(claimUrl);
+  if (!appid) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), FETCH_MS);
+  try {
+    const res = await fetchImpl(STEAM_APPDETAILS + appid + "&l=tchinese", {
+      method: "GET",
+      signal: ctrl.signal,
+      headers: { "User-Agent": UA, Accept: "application/json" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const entry = data && data[appid];
+    if (!entry || entry.success !== true || !entry.data) return null;
+    return entry.data;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function isOfficialSteamAdult(claimUrl, fetchImpl) {
@@ -473,11 +608,18 @@ export async function isOfficialSteamAdult(claimUrl, fetchImpl) {
   }
 }
 
-async function dropAdultSteamGames(games, fetchImpl) {
+// Official Steam data: drop adult apps and offers Steam already prices above zero,
+// and use Steam's Traditional Chinese name and header image when it has them.
+async function checkSteamGames(games, fetchImpl) {
   const checked = await Promise.all(
     games.map(async (game) => {
       if (!game || game.store !== "steam") return game;
-      return (await isOfficialSteamAdult(game.claimUrl, fetchImpl)) ? null : game;
+      const details = await fetchSteamDetails(game.claimUrl, fetchImpl);
+      if (!details) return game;
+      if (isSteamAdultApp(details) || isSteamPaidNow(details)) return null;
+      const title = formatLocalizedTitle(details.name, game.title) || game.title;
+      const image = isHttpsImageUrl(details.header_image) ? details.header_image : game.image;
+      return { ...game, title, image };
     }),
   );
   return checked.filter(Boolean);
@@ -567,10 +709,11 @@ export function mergeGames(groups, nowMs) {
   const seen = new Set();
   const out = [];
   for (const game of groups.flat()) {
-    if (!game || !game.title || !isOfficialStoreUrl(game.claimUrl)) continue;
+    if (!game || !game.title || !isOfficialClaimUrl(game.claimUrl, game.kind)) continue;
     if (/gamerpower/i.test(game.claimUrl)) continue;
-    const end = Date.parse(game.endsAt);
-    if (!Number.isFinite(end) || end <= now) continue;
+    const end = game.endsAt ? Date.parse(game.endsAt) : NaN;
+    if (game.endsAt && !Number.isFinite(end)) continue;
+    if (Number.isFinite(end) && end <= now) continue;
     const claimUrl = sanitizeStoreUrl(game.claimUrl);
     if (!claimUrl) continue;
     const keys = [game.store + ":" + normalizeTitle(game.title), game.store + ":url:" + claimUrl];
@@ -585,17 +728,19 @@ export function mergeGames(groups, nowMs) {
       platform: game.platform || STORE_LABELS[game.store] || game.store,
       store: game.store,
       image: isHttpsImageUrl(game.image) ? game.image : "",
-      endsAt: new Date(end).toISOString(),
       claimUrl,
       source: game.source,
     };
-    if (game.kind === "bundle") clean.kind = "bundle";
+    if (Number.isFinite(end)) clean.endsAt = new Date(end).toISOString();
+    if (game.kind === "bundle" || game.kind === "dlc") clean.kind = game.kind;
     if (game.id) clean.id = game.id;
     out.push(clean);
   }
   out.sort((a, b) => {
-    const end = Date.parse(a.endsAt) - Date.parse(b.endsAt);
-    if (end !== 0) return end;
+    // Dated offers first (soonest end), then offers without a published end date.
+    const ea = a.endsAt ? Date.parse(a.endsAt) : Infinity;
+    const eb = b.endsAt ? Date.parse(b.endsAt) : Infinity;
+    if (ea !== eb) return ea < eb ? -1 : 1;
     return a.title.localeCompare(b.title, "zh-Hant");
   });
   return out;
@@ -603,16 +748,18 @@ export function mergeGames(groups, nowMs) {
 
 export function isFreeGame(item) {
   if (!item || typeof item.title !== "string" || !item.title.trim()) return false;
-  if (!isOfficialStoreUrl(item.claimUrl)) return false;
+  if (!isOfficialClaimUrl(item.claimUrl, item.kind)) return false;
   if (/gamerpower/i.test(item.claimUrl)) return false;
-  if (!Number.isFinite(Date.parse(item.endsAt))) return false;
+  if (item.endsAt != null && !Number.isFinite(Date.parse(item.endsAt))) return false;
   if (item.image && !isHttpsImageUrl(item.image)) return false;
   if (!item.platform || !item.store || !item.source) return false;
   return true;
 }
 
 export function isPayload(data) {
-  return Boolean(data && Array.isArray(data.games) && data.games.every(isFreeGame));
+  if (!data || !Array.isArray(data.games) || !data.games.every(isFreeGame)) return false;
+  if (data.loot != null && !(Array.isArray(data.loot) && data.loot.every(isFreeGame))) return false;
+  return true;
 }
 
 export function toRss(payload, origin) {
@@ -626,7 +773,7 @@ export function toRss(payload, origin) {
       .replace(/"/g, "&quot;");
   const items = games
     .map((game) => {
-      const end = Date.parse(game.endsAt);
+      const end = game.endsAt ? Date.parse(game.endsAt) : NaN;
       const pub = Number.isFinite(end) ? new Date(end).toUTCString() : "";
       const label = game.kind === "bundle" ? game.platform + " · 遊戲包" : game.platform;
       return [
@@ -704,14 +851,15 @@ export async function updateFreeGamesHistory(kv, games, nowMs) {
     store: g.store,
     platform: g.platform,
     image: g.image || "",
-    endsAt: g.endsAt,
+    endsAt: g.endsAt || "",
     claimUrl: g.claimUrl,
     kind: g.kind || "game",
   }));
   const currentIds = new Set(current.map((g) => g.id).filter(Boolean));
   const seen = new Set(Array.isArray(prev.seenIds) ? prev.seenIds : []);
   for (const g of current) {
-    if (g.id) seen.add(g.id);
+    // The public counter is 已整理 N 款免費遊戲, so free items/DLC are not counted.
+    if (g.id && g.kind !== "dlc") seen.add(g.id);
   }
   const endedMap = new Map();
   (Array.isArray(prev.ended) ? prev.ended : []).forEach((g) => {
@@ -720,7 +868,9 @@ export async function updateFreeGamesHistory(kv, games, nowMs) {
   (Array.isArray(prev.current) ? prev.current : []).forEach((g) => {
     if (!g || !g.id) return;
     if (!currentIds.has(g.id)) {
-      endedMap.set(g.id, { ...g, endedAt: g.endsAt || new Date(now).toISOString() });
+      const planned = g.endsAt ? Date.parse(g.endsAt) : NaN;
+      const endedAt = Number.isFinite(planned) && planned <= now ? g.endsAt : new Date(now).toISOString();
+      endedMap.set(g.id, { ...g, endedAt });
     }
   });
   currentIds.forEach((id) => endedMap.delete(id));
@@ -759,21 +909,24 @@ export async function loadFreeGames(fetchImpl, options) {
 
   const gpItems = gpHit.data ? gamerPowerCandidates(gpHit.data, nowMs) : [];
   const gpGames = gpItems.length ? await resolveGamerPowerGames(gpItems, fetchImpl) : [];
-  const ageChecked = await dropAdultSteamGames(gpGames, fetchImpl);
+  const ageChecked = await checkSteamGames(gpGames, fetchImpl);
   const epicGames = epicData ? parseEpicPromotions(epicData, nowMs) : [];
   const enriched = await applyEpicData(ageChecked, epicGames, fetchImpl);
-  const games = mergeGames([enriched], nowMs);
+  const all = mergeGames([enriched], nowMs);
+  const games = all.filter((g) => g.kind !== "dlc");
+  const loot = all.filter((g) => g.kind === "dlc");
   const upcoming = epicData ? parseEpicUpcoming(epicData, nowMs) : [];
   const payload = {
     games,
     updatedAt: new Date(nowMs).toISOString(),
-    attribution: games.some((g) => g.source === "gamerpower"),
+    attribution: all.some((g) => g.source === "gamerpower"),
   };
+  if (loot.length) payload.loot = loot;
   if (upcoming.length) payload.upcoming = upcoming;
   const kv = historyKv(options && options.env);
   if (kv) {
     try {
-      const hist = await updateFreeGamesHistory(kv, games, nowMs);
+      const hist = await updateFreeGamesHistory(kv, all, nowMs);
       if (hist.seenCount) payload.seenCount = hist.seenCount;
       if (hist.ended && hist.ended.length) payload.ended = hist.ended;
     } catch {
@@ -845,7 +998,7 @@ export async function onRssRequest(context) {
   } catch {
     edgeCache = null;
   }
-  const cacheKey = "https://playwhaly.com/free-games.xml";
+  const cacheKey = "https://playwhaly.com/free-games.xml?v=2";
   if (edgeCache) {
     const hit = await edgeCache.match(cacheKey);
     if (hit) return hit;
