@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>今天玩什麼｜威利 Whaly</title>
+<meta name="theme-color" content="#FFF7EE">
+<meta name="description" content="從還沒玩的遊戲裡抽一個。可以先用平台或類型縮小範圍。">
+<link rel="canonical" href="https://playwhaly.com/spin">
+<meta property="og:title" content="今天玩什麼｜威利 Whaly">
+<meta property="og:description" content="從還沒玩的遊戲裡抽一個。可以先用平台或類型縮小範圍。">
+<meta property="og:url" content="https://playwhaly.com/spin">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="威利 Whaly">
+<meta property="og:image" content="https://playwhaly.com/og-image-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="今天玩什麼｜威利 Whaly">
+<meta name="twitter:description" content="從還沒玩的遊戲裡抽一個。可以先用平台或類型縮小範圍。">
+<meta name="twitter:image" content="https://playwhaly.com/og-image-1200x630.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/pages.css">
+</head>
+<body data-page="spin">
+<div class="wrap">
+  <header>
+    <div class="brand"><a href="/"><span class="dot"><svg fill="#6470C8" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="6.2" ry="5"/><circle cx="4.8" cy="8.6" r="2.15"/><circle cx="9" cy="5.8" r="2.35"/><circle cx="15.2" cy="5.8" r="2.35"/><circle cx="19.2" cy="8.6" r="2.15"/></svg></span>威利 Whaly</a></div>
+    <nav aria-label="頁面">
+      <a class="pill keep" href="/">首頁</a>
+      <a class="pill keep" href="/free">限時免費</a>
+      <a class="pill keep" href="/backlog">遊戲清單</a>
+      <a class="pill keep is-active" aria-current="page" href="/spin">今天玩什麼</a>
+    </nav>
+  </header>
+
+  <div class="page-kicker">
+    <p class="eyebrow">今天玩什麼？</p>
+    <h1>轉一下</h1>
+    <p class="lede">從還沒玩的遊戲裡抽一個。可以先用平台或類型縮小範圍。</p>
+  </div>
+
+  <div class="spin-layout">
+    <section class="panel wheel-panel" aria-labelledby="wheel-title">
+      <div class="wheel-head">
+        <h2 id="wheel-title">未玩遊戲轉盤</h2>
+        <button type="button" class="fx-toggle" id="fx-toggle" aria-pressed="false" title="特效預設關閉">特效：關</button>
+      </div>
+      <div class="filters" aria-label="篩選">
+        <select class="select" id="platform" aria-label="平台"><option value="">全部平台</option></select>
+        <select class="select" id="genre" aria-label="類型"><option value="">全部類型</option></select>
+        <span class="filter-chip is-on" id="pool-count">未玩 0 款</span>
+      </div>
+      <div class="wheel-wrap">
+        <div class="wheel-pointer" aria-hidden="true"></div>
+        <div class="wheel" id="wheel" aria-hidden="true"></div>
+        <div class="wheel-hub" aria-hidden="true"><svg fill="#6470C8" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="6.2" ry="5"/><circle cx="4.8" cy="8.6" r="2.15"/><circle cx="9" cy="5.8" r="2.35"/><circle cx="15.2" cy="5.8" r="2.35"/><circle cx="19.2" cy="8.6" r="2.15"/></svg></div>
+        <div class="paw-burst" id="paw-burst" hidden aria-hidden="true"></div>
+      </div>
+      <button class="btn btn-primary spin-btn" id="spin-btn" type="button">轉！</button>
+      <p class="spin-hint">每次會從篩選後還沒玩的遊戲裡新抽 8 到 12 款放上轉盤。可以用上面的篩選縮小範圍。</p>
+    </section>
+
+    <section class="panel result" aria-labelledby="result-title">
+      <div class="result-head">
+        <h2 id="result-title">抽到這一款</h2>
+      </div>
+      <div id="result"><p class="result-placeholder">按「轉！」從還沒玩的遊戲裡抽一個。</p></div>
+    </section>
+  </div>
+
+  <footer>
+    <div>© 2026 威利 Whaly</div>
+    <div class="foot-links">
+      <a href="/terms">服務條款 Terms</a>
+      <a href="/privacy">隱私權政策 Privacy</a>
+      <a href="mailto:hi@playwhaly.com">hi@playwhaly.com</a>
+    </div>
+  </footer>
+
+</div>
+<script src="/games-util.js"></script>
+<script src="/spin.js"></script>
+<aside id="amiao-corner" hidden></aside>
+<script src="/amiao.js" defer></script>
+</body>
+</html>

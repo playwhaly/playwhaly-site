@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>遊戲清單｜威利 Whaly</title>
+<meta name="theme-color" content="#FFF7EE">
+<meta name="description" content="看看目前玩了多少、正在玩什麼，也可以搜尋整份清單。">
+<link rel="canonical" href="https://playwhaly.com/backlog">
+<meta property="og:title" content="遊戲清單｜威利 Whaly">
+<meta property="og:description" content="看看目前玩了多少、正在玩什麼，也可以搜尋整份清單。">
+<meta property="og:url" content="https://playwhaly.com/backlog">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="威利 Whaly">
+<meta property="og:image" content="https://playwhaly.com/og-image-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="遊戲清單｜威利 Whaly">
+<meta name="twitter:description" content="看看目前玩了多少、正在玩什麼，也可以搜尋整份清單。">
+<meta name="twitter:image" content="https://playwhaly.com/og-image-1200x630.png">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/pages.css">
+</head>
+<body data-page="backlog">
+<div class="wrap">
+  <header>
+    <div class="brand"><a href="/"><span class="dot"><svg fill="#6470C8" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="15.5" rx="6.2" ry="5"/><circle cx="4.8" cy="8.6" r="2.15"/><circle cx="9" cy="5.8" r="2.35"/><circle cx="15.2" cy="5.8" r="2.35"/><circle cx="19.2" cy="8.6" r="2.15"/></svg></span>威利 Whaly</a></div>
+    <nav aria-label="頁面">
+      <a class="pill keep" href="/">首頁</a>
+      <a class="pill keep" href="/free">限時免費</a>
+      <a class="pill keep is-active" aria-current="page" href="/backlog">遊戲清單</a>
+      <a class="pill keep" href="/spin">今天玩什麼</a>
+    </nav>
+  </header>
+
+  <div class="page-kicker">
+    <p class="eyebrow">遊戲庫</p>
+    <h1>遊戲清單</h1>
+    <p class="lede">看看目前玩了多少、正在玩什麼，也可以搜尋整份清單。</p>
+  </div>
+
+  <section class="stats-grid" id="backlog-stats" hidden aria-label="遊戲庫統計">
+    <div class="stat-card">
+      <p class="lab">總數</p>
+      <p class="num" id="stat-total">0</p>
+    </div>
+    <div class="stat-card is-accent">
+      <p class="lab">已完成</p>
+      <p class="num" id="stat-done">0</p>
+    </div>
+    <div class="stat-card">
+      <p class="lab">遊玩中</p>
+      <p class="num" id="stat-play">0</p>
+    </div>
+    <div class="stat-card">
+      <p class="lab">未玩</p>
+      <p class="num" id="stat-todo">0</p>
+    </div>
+  </section>
+
+  <div class="back-grid">
+    <section class="panel" aria-labelledby="now-title">
+      <h3 id="now-title">正在玩</h3>
+      <div id="now-playing">
+        <div class="now-empty"><strong>讀取中</strong>正在載入遊戲清單。</div>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="done-title">
+      <h3 id="done-title">最近完成</h3>
+      <ul class="done-list" id="recent-done"></ul>
+      <p class="list-foot" id="recent-done-foot"></p>
+    </section>
+  </div>
+
+  <section class="block compact-grid" aria-labelledby="recent-videos-title">
+    <div class="sec-head"><h2 id="recent-videos-title">最近影片</h2><a href="/#videos">更多影片 →</a></div>
+    <div class="grid" id="recent-videos" data-videos data-skip-latest="false" data-count="3"></div>
+  </section>
+
+  <section class="panel library" aria-labelledby="lib-title">
+    <h3 id="lib-title">完整清單</h3>
+    <div class="tools">
+      <input class="search" id="q" type="search" placeholder="搜尋遊戲名稱…" autocomplete="off">
+      <button type="button" class="filter-chip is-on" data-status="" aria-pressed="true">全部</button>
+      <button type="button" class="filter-chip" data-status="已完成" aria-pressed="false">已完成</button>
+      <button type="button" class="filter-chip" data-status="遊玩中" aria-pressed="false">遊玩中</button>
+      <button type="button" class="filter-chip" data-status="未玩" aria-pressed="false">未玩</button>
+      <select class="select" id="platform" aria-label="平台">
+        <option value="">全部平台</option>
+      </select>
+      <select class="select" id="genre" aria-label="類型">
+        <option value="">全部類型</option>
+      </select>
+    </div>
+    <div class="table-scroll" tabindex="0">
+      <table class="games">
+        <colgroup>
+          <col class="col-name">
+          <col class="col-platform">
+          <col class="col-status">
+          <col class="col-genre">
+          <col class="col-release">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="col-name">顯示名稱</th>
+            <th class="col-platform">平台</th>
+            <th class="col-status">狀態</th>
+            <th class="col-genre">類型</th>
+            <th class="col-release">發行</th>
+          </tr>
+        </thead>
+        <tbody id="game-rows">
+          <tr><td colspan="5">正在載入遊戲清單…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-scroll-hint">表格可以左右滑動，欄位都保持單行。</p>
+    <p class="list-foot" id="list-foot"></p>
+  </section>
+
+  <div class="spin-cta">
+    <p>不知道今天玩什麼？從沒玩過的遊戲裡轉一個。</p>
+    <a class="btn btn-primary" href="/spin">去轉盤 →</a>
+  </div>
+
+  <footer>
+    <div>© 2026 威利 Whaly</div>
+    <div class="foot-links">
+      <a href="/terms">服務條款 Terms</a>
+      <a href="/privacy">隱私權政策 Privacy</a>
+      <a href="mailto:hi@playwhaly.com">hi@playwhaly.com</a>
+    </div>
+  </footer>
+
+</div>
+<script src="/games.js"></script>
+<script src="/lib.js"></script>
+<script src="/games-util.js"></script>
+<script src="/videos.js"></script>
+<script src="/backlog.js"></script>
+<aside id="amiao-corner" hidden></aside>
+<script src="/amiao.js" defer></script>
+</body>
+</html>

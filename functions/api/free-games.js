@@ -287,6 +287,57 @@ export function parseEpicPromotions(data, nowMs) {
   return games;
 }
 
+
+function upcomingFreeOffer(element, now) {
+  const offers = flattenOffers((element && element.promotions && element.promotions.upcomingPromotionalOffers) || []);
+  let best = null;
+  for (const offer of offers) {
+    const setting = offer.discountSetting || {};
+    if (setting.discountType && setting.discountType !== "PERCENTAGE") continue;
+    if (setting.discountPercentage !== 0) continue;
+    const start = Date.parse(offer.startDate);
+    const end = Date.parse(offer.endDate);
+    if (!Number.isFinite(start) || !Number.isFinite(end)) continue;
+    if (start <= now) continue;
+    if (!best || start < Date.parse(best.startDate)) best = offer;
+  }
+  return best;
+}
+
+export function parseEpicUpcoming(data, nowMs) {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  const elements =
+    (data && data.data && data.data.Catalog && data.data.Catalog.searchStore && data.data.Catalog.searchStore.elements) ||
+    [];
+  const games = [];
+  for (const element of elements) {
+    const offerType = element && element.offerType;
+    if (offerType !== "BASE_GAME" && offerType !== "BUNDLE") continue;
+    const price = (element.price && element.price.totalPrice) || {};
+    if (price.originalPrice === 0) continue;
+    const offer = upcomingFreeOffer(element, now);
+    if (!offer) continue;
+    const title = unwrapTitle(element.title);
+    const slug = epicSlug(element);
+    const claimUrl = slug ? sanitizeStoreUrl("https://store.epicgames.com/zh-Hant/p/" + slug) : "";
+    if (!title || !claimUrl) continue;
+    games.push({
+      id: "epic-upcoming:" + (element.namespace || "") + ":" + (element.id || slug),
+      title,
+      platform: STORE_LABELS.epic,
+      store: "epic",
+      image: epicImage(element),
+      startsAt: new Date(Date.parse(offer.startDate)).toISOString(),
+      endsAt: new Date(Date.parse(offer.endDate)).toISOString(),
+      claimUrl,
+      source: "epic",
+      kind: offerType === "BUNDLE" || /bundle/i.test(title) ? "bundle" : "game",
+    });
+  }
+  games.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt) || a.title.localeCompare(b.title, "zh-Hant"));
+  return games;
+}
+
 function gamerPowerKind(item) {
   const type = String((item && item.type) || "");
   const title = String((item && item.title) || "");
@@ -595,7 +646,7 @@ export function toRss(payload, origin) {
     '<?xml version="1.0" encoding="UTF-8"?>' +
     '<rss version="2.0"><channel>' +
     "<title>" + esc("威利 Whaly｜限時免費領取") + "</title>" +
-    "<link>" + esc(site + "/#free-games") + "</link>" +
+    "<link>" + esc(site + "/free") + "</link>" +
     "<description>" +
     esc("各商店目前限時免費、領了就能留下來的遊戲。Data: GamerPower.com; some Epic titles, images and end times from the Epic Games Store") +
     "</description>" +
@@ -630,6 +681,68 @@ async function fetchJson(url, fetchImpl, cfCache, allowStatuses) {
   }
 }
 
+
+const HISTORY_KEY = "free-games-history-v1";
+const ENDED_KEEP_MS = 21 * 24 * 3600 * 1000;
+
+function historyKv(env) {
+  return env && (env.FREE_GAMES_HISTORY || env.FREE_GAMES_SEEN) ? (env.FREE_GAMES_HISTORY || env.FREE_GAMES_SEEN) : null;
+}
+
+export async function updateFreeGamesHistory(kv, games, nowMs) {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  let prev = { seenIds: [], seenCount: 0, current: [], ended: [] };
+  try {
+    const raw = await kv.get(HISTORY_KEY, { type: "json" });
+    if (raw && typeof raw === "object") prev = { ...prev, ...raw };
+  } catch {
+    /* ignore unreadable history */
+  }
+  const current = (games || []).map((g) => ({
+    id: g.id || g.claimUrl,
+    title: g.title,
+    store: g.store,
+    platform: g.platform,
+    image: g.image || "",
+    endsAt: g.endsAt,
+    claimUrl: g.claimUrl,
+    kind: g.kind || "game",
+  }));
+  const currentIds = new Set(current.map((g) => g.id).filter(Boolean));
+  const seen = new Set(Array.isArray(prev.seenIds) ? prev.seenIds : []);
+  for (const g of current) {
+    if (g.id) seen.add(g.id);
+  }
+  const endedMap = new Map();
+  (Array.isArray(prev.ended) ? prev.ended : []).forEach((g) => {
+    if (g && g.id) endedMap.set(g.id, g);
+  });
+  (Array.isArray(prev.current) ? prev.current : []).forEach((g) => {
+    if (!g || !g.id) return;
+    if (!currentIds.has(g.id)) {
+      endedMap.set(g.id, { ...g, endedAt: g.endsAt || new Date(now).toISOString() });
+    }
+  });
+  currentIds.forEach((id) => endedMap.delete(id));
+  const ended = [...endedMap.values()]
+    .filter((g) => {
+      const t = Date.parse(g.endedAt || g.endsAt);
+      return Number.isFinite(t) && now - t <= ENDED_KEEP_MS;
+    })
+    .sort((a, b) => Date.parse(b.endedAt || b.endsAt) - Date.parse(a.endedAt || a.endsAt))
+    .slice(0, 12);
+  const seenIds = [...seen];
+  const next = {
+    seenIds,
+    seenCount: seenIds.length,
+    current,
+    ended,
+    updatedAt: new Date(now).toISOString(),
+  };
+  await kv.put(HISTORY_KEY, JSON.stringify(next));
+  return { seenCount: next.seenCount, ended };
+}
+
 export async function loadFreeGames(fetchImpl, options) {
   const cfCache = Boolean(options && options.cfCache);
   const nowMs = options && Number.isFinite(options.nowMs) ? options.nowMs : Date.now();
@@ -650,12 +763,25 @@ export async function loadFreeGames(fetchImpl, options) {
   const epicGames = epicData ? parseEpicPromotions(epicData, nowMs) : [];
   const enriched = await applyEpicData(ageChecked, epicGames, fetchImpl);
   const games = mergeGames([enriched], nowMs);
+  const upcoming = epicData ? parseEpicUpcoming(epicData, nowMs) : [];
+  const payload = {
+    games,
+    updatedAt: new Date(nowMs).toISOString(),
+    attribution: games.some((g) => g.source === "gamerpower"),
+  };
+  if (upcoming.length) payload.upcoming = upcoming;
+  const kv = historyKv(options && options.env);
+  if (kv) {
+    try {
+      const hist = await updateFreeGamesHistory(kv, games, nowMs);
+      if (hist.seenCount) payload.seenCount = hist.seenCount;
+      if (hist.ended && hist.ended.length) payload.ended = hist.ended;
+    } catch {
+      /* hide count and ended rather than invent numbers */
+    }
+  }
   return {
-    payload: {
-      games,
-      updatedAt: new Date(nowMs).toISOString(),
-      attribution: games.some((g) => g.source === "gamerpower"),
-    },
+    payload,
     cacheSeconds: games.length ? CACHE_SECONDS : EMPTY_CACHE_SECONDS,
   };
 }
@@ -698,7 +824,7 @@ export async function onRequest(context) {
   }
 
   try {
-    const resolved = await loadFreeGames(fetch, { cfCache: true });
+    const resolved = await loadFreeGames(fetch, { cfCache: true, env: context.env });
     const response = jsonResponse(resolved.payload, 200, resolved.cacheSeconds);
     if (edgeCache) {
       context.waitUntil(edgeCache.put(CACHE_KEY, response.clone()));
@@ -725,7 +851,7 @@ export async function onRssRequest(context) {
     if (hit) return hit;
   }
   try {
-    const resolved = await loadFreeGames(fetch, { cfCache: true });
+    const resolved = await loadFreeGames(fetch, { cfCache: true, env: context.env });
     const origin = new URL(context.request.url).origin;
     const response = rssResponse(resolved.payload, origin, resolved.cacheSeconds);
     if (edgeCache) context.waitUntil(edgeCache.put(cacheKey, response.clone()));

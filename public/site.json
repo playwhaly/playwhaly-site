@@ -1,0 +1,8 @@
+{
+  "discordInvite": "/discord",
+  "followPlatforms": [
+    { "id": "ig", "label": "Instagram", "href": "https://www.instagram.com/playwhaly" },
+    { "id": "threads", "label": "Threads", "href": "https://www.threads.com/@playwhaly" },
+    { "id": "facebook", "label": "Facebook", "href": "https://www.facebook.com/playwhaly" }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "credit": "阿喵 模型：278shop くろねこ043",
+  "imageDir": "/assets/amiao/",
+  "who": "阿喵",
+  "closeLabel": "關閉對話",
+  "openLabel": "阿喵說的話",
+  "pages": {
+    "home": {
+      "image": "normal.png",
+      "lines": [
+        "嗨～今天想看什麼喵？",
+        "進來坐坐，一起慢慢看影片～",
+        "各種遊戲都玩，今天也輕鬆一點喵",
+        "新影片跟直播消息都在這裡唷"
+      ]
+    },
+    "free": {
+      "image": "smirk.png",
+      "lines": [
+        "快領快領～免費的最香",
+        "先領起來，之後再慢慢玩也不遲～",
+        "官方商店的限免，本喵幫你看著",
+        "有喜歡的就下手，過期就沒了喵"
+      ],
+      "templates": [
+        { "when": "liveCount", "text": "今天有 {liveCount} 款免費喔！" }
+      ]
+    },
+    "backlog": {
+      "image": "surprised.png",
+      "lines": [
+        "這麼多還沒玩完喵…",
+        "清單有點長，慢慢挑就好～",
+        "先從想玩的那幾款開始吧",
+        "玩過的打勾，沒玩的也不急喵"
+      ],
+      "templates": [
+        { "when": "unplayed", "text": "還有 {unplayed} 款沒玩喵…" }
+      ]
+    },
+    "spin": {
+      "image": "playful.png",
+      "lines": [
+        "讓本喵幫你選！",
+        "轉一下就知道今天玩什麼～",
+        "不要的話再轉一次也沒關係喵",
+        "交給轉盤，少花時間猶豫"
+      ],
+      "templates": [
+        { "when": "game", "text": "{game}？本喵覺得不錯喵～" },
+        { "when": "game", "text": "那就 {game} 吧，開起來玩玩看～" },
+        { "when": "game", "text": "{game} 聽起來就很有趣喵" }
+      ]
+    }
+  }
+}

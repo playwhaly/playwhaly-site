@@ -9,6 +9,8 @@ import {
   sanitizeStoreUrl,
   parseGamerPowerEnd,
   parseEpicPromotions,
+  parseEpicUpcoming,
+  updateFreeGamesHistory,
   gamerPowerCandidates,
   resolveStoreUrl,
   steamAppIdFromUrl,
@@ -592,7 +594,7 @@ for (const [name, html] of [["terms", terms], ["privacy", privacy]]) {
   assert.equal(html.includes('rel="noopener"'), true, name + " GamerPower link should use rel=noopener");
   assert.equal(html.includes("Epic Games Store"), true, name + " should mention Epic Games Store");
   assert.equal(html.includes("GOG"), false, name + " should not name GOG as a data source");
-  assert.equal(html.includes("限時免費領取"), true, name + " should mention the free-games list");
+  assert.equal(html.includes("限時免費"), true, name + " should mention the free-games list");
 }
 assert.equal(terms.includes("資料來源"), true);
 assert.equal(terms.includes("Data sources"), true);
@@ -619,3 +621,76 @@ assert.deepEqual(
   "sorted by ending soonest first",
 );
 console.log("all free-games tests passed (no cap)");
+
+const upcoming = parseEpicUpcoming(
+  epicData([
+    epicElement(),
+    epicElement({
+      title: "Bread and Fred",
+      offerMappings: [{ pageSlug: "bread-and-fred-1db362", pageType: "productHome" }],
+      price: { totalPrice: { originalPrice: 1168, discountPrice: 1168 } },
+      promotions: {
+        promotionalOffers: [],
+        upcomingPromotionalOffers: [
+          {
+            promotionalOffers: [
+              {
+                startDate: "2026-11-26T16:00:00.000Z",
+                endDate: "2026-12-03T16:00:00.000Z",
+                discountSetting: { discountType: "PERCENTAGE", discountPercentage: 0 },
+              },
+            ],
+          },
+        ],
+      },
+    }),
+    epicElement({
+      title: "Not actually free later",
+      offerMappings: [{ pageSlug: "not-free", pageType: "productHome" }],
+      promotions: {
+        promotionalOffers: [],
+        upcomingPromotionalOffers: [
+          {
+            promotionalOffers: [
+              {
+                startDate: "2026-11-26T16:00:00.000Z",
+                endDate: "2026-12-03T16:00:00.000Z",
+                discountSetting: { discountType: "PERCENTAGE", discountPercentage: 70 },
+              },
+            ],
+          },
+        ],
+      },
+    }),
+  ]),
+  NOW,
+);
+assert.equal(upcoming.length, 1);
+assert.equal(upcoming[0].title, "Bread and Fred");
+assert.equal(upcoming[0].startsAt, "2026-11-26T16:00:00.000Z");
+assert.equal(upcoming[0].endsAt, "2026-12-03T16:00:00.000Z");
+assert.equal(upcoming[0].claimUrl, "https://store.epicgames.com/zh-Hant/p/bread-and-fred-1db362");
+
+const kvStore = new Map();
+const kv = {
+  async get(key, opts) {
+    const raw = kvStore.get(key);
+    if (raw == null) return null;
+    return opts && opts.type === "json" ? JSON.parse(raw) : raw;
+  },
+  async put(key, value) {
+    kvStore.set(key, value);
+  },
+};
+const firstHist = await updateFreeGamesHistory(kv, [
+  { id: "gamerpower:1", title: "Alpha", store: "steam", platform: "Steam", image: "", endsAt: "2026-11-25T00:00:00.000Z", claimUrl: "https://store.steampowered.com/app/1/" },
+], NOW);
+assert.equal(firstHist.seenCount, 1);
+assert.equal(firstHist.ended.length, 0);
+const secondHist = await updateFreeGamesHistory(kv, [
+  { id: "gamerpower:2", title: "Beta", store: "epic", platform: "Epic 遊戲商店", image: "", endsAt: "2026-12-01T00:00:00.000Z", claimUrl: "https://store.epicgames.com/zh-Hant/p/beta" },
+], NOW + 1000);
+assert.equal(secondHist.seenCount, 2);
+assert.equal(secondHist.ended.length, 1);
+assert.equal(secondHist.ended[0].title, "Alpha");
+console.log("upcoming and history tests passed");

@@ -16,5 +16,10 @@ swap("hero-slides", PW.slidesHTML(all));
 swap("video-cards", PW.cardsHTML(data.more));
 const game = PW.gameFromTitle(data.latest.title);
 swap("latest-badge", `<span class="badge-text">最新上傳 · ${PW.esc(game)} · ${PW.formatMD(data.latest.published)}</span>`);
+const latestUrl = data.latest.url;
+html = html.replace(
+  /(<a class="badge latest" id="latest-badge-link" href=")[^"]+"/,
+  "$1" + latestUrl + '"',
+);
 writeFileSync(file, html);
 console.log("baked", all.length, "videos");
