@@ -16,7 +16,7 @@
   function joinDir(dir, file) {
     var d = String(dir || "/assets/amiao/");
     if (d.charAt(d.length - 1) !== "/") d += "/";
-    return d + String(file || "normal.png").replace(/^\//, "");
+    return d + String(file || "normal.webp").replace(/^\//, "");
   }
   function fillTemplate(text, ctx) {
     return String(text || "").replace(/\{([a-zA-Z0-9_]+)\}/g, function (_, key) {

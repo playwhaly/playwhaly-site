@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import { parseCsv, isAllowedCsvUrl, gamesFromCsv, summarize, loadBacklog } from "../functions/api/backlog.js";
 
 const rows = parseCsv('name_en,name_zh,status\n"Foo, Inc",測試,已完成\nBar,吧,未玩\n');
@@ -53,5 +55,41 @@ const fetched = await loadBacklog(
 assert.equal(fetched.payload.ok, true);
 assert.equal(fetched.payload.games.length, 3);
 assert.equal(fetched.payload.stats.todo, 1);
+
+
+assert.equal(games[1].completed_date, "2024-01-02");
+const PUBLIC_KEYS = new Set([
+  "name_zh", "name_en", "display_name", "platform", "status",
+  "genre", "release_date", "completed_date", "steam_appid",
+  "store_url", "store_label",
+]);
+for (const game of games) {
+  for (const key of Object.keys(game)) {
+    assert.equal(PUBLIC_KEYS.has(key), true, "unexpected column " + key);
+  }
+  assert.equal("notes" in game, false);
+  assert.equal("playtime" in game, false);
+  assert.equal("playnite_id" in game, false);
+  assert.equal("sources" in game, false);
+  assert.equal("store_game_id" in game, false);
+  assert.equal("public" in game, false);
+}
+
+assert.equal(fetched.cacheSeconds, 600);
+
+const ctx = { window: {} };
+ctx.window = ctx;
+vm.runInNewContext(readFileSync(new URL("../public/games-util.js", import.meta.url), "utf8"), ctx);
+const slice = ctx.PWGames.pageSlice(Array.from({ length: 120 }, (_, i) => i + 1), 2, 50);
+assert.equal(slice.page, 2);
+assert.equal(slice.pageSize, 50);
+assert.equal(slice.total, 120);
+assert.equal(slice.start, 51);
+assert.equal(slice.end, 100);
+assert.equal(slice.pages, 3);
+assert.deepEqual(slice.items, Array.from({ length: 50 }, (_, i) => i + 51));
+const clamped = ctx.PWGames.pageSlice([1, 2, 3], 99, 50);
+assert.equal(clamped.page, 1);
+assert.deepEqual(clamped.items, [1, 2, 3]);
 
 console.log("all backlog tests passed");

@@ -6,7 +6,7 @@
   "openLabel": "阿喵說的話",
   "pages": {
     "home": {
-      "image": "normal.png",
+      "image": "normal.webp",
       "lines": [
         "嗨～今天想看什麼喵？",
         "進來坐坐，一起慢慢看影片～",
@@ -15,7 +15,7 @@
       ]
     },
     "free": {
-      "image": "smirk.png",
+      "image": "smirk.webp",
       "lines": [
         "快領快領～免費的最香",
         "先領起來，之後再慢慢玩也不遲～",
@@ -27,7 +27,7 @@
       ]
     },
     "backlog": {
-      "image": "surprised.png",
+      "image": "surprised.webp",
       "lines": [
         "這麼多還沒玩完喵…",
         "清單有點長，慢慢挑就好～",
@@ -39,7 +39,7 @@
       ]
     },
     "spin": {
-      "image": "playful.png",
+      "image": "playful.webp",
       "lines": [
         "讓本喵幫你選！",
         "轉一下就知道今天玩什麼～",

@@ -122,7 +122,12 @@
       </table>
     </div>
     <p class="table-scroll-hint">表格可以左右滑動，欄位都保持單行。</p>
-    <p class="list-foot" id="list-foot"></p>
+    <div class="game-cards" id="game-cards"></div>
+    <nav class="list-pager" id="list-pager" aria-label="清單分頁">
+      <button type="button" class="pill" id="page-prev" hidden>上一頁</button>
+      <p class="list-foot" id="list-foot" aria-live="polite"></p>
+      <button type="button" class="pill" id="page-next" hidden>下一頁</button>
+    </nav>
   </section>
 
   <div class="spin-cta">

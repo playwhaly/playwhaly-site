@@ -12,9 +12,10 @@ Static site for playwhaly.com, hosted on Cloudflare Pages.
 
 - `/` home: latest video, intro, game-name banner, destination cards, recent videos (9, skipping the newest because it is already in the hero), socials, Hello game devs.
 - `/free` limited-time free games from official stores only. Claim buttons never point at GamerPower.
-- `/backlog` the public game list.
+- `/backlog` the public game list, shown 50 at a time, with compact cards on a narrow screen.
 - `/spin` a wheel that picks from unplayed games in that list.
 - `/terms` and `/privacy`.
+- `/robots.txt`, `/llms.txt` and `/sitemap.xml`.
 
 Pretty URLs work on Cloudflare Pages (`free.html` is served at `/free`).
 
@@ -27,7 +28,7 @@ Pretty URLs work on Cloudflare Pages (`free.html` is served at `/free`).
 
 The project must be Git connected, or deployed with Wrangler. Dashboard Direct Upload does not support Functions. If the Pages root directory is set to `public`, the Function in `functions/` will not be picked up.
 
-`public/_routes.json` limits Function invocation to `/api/*` and `/free-games.xml`, so ordinary page views stay static and do not count against the Functions request quota.
+`public/_routes.json` limits Function invocation to `/api/*` and `/free-games.xml`, and excludes `/robots.txt`, `/llms.txt` and `/sitemap.xml`, so ordinary page views stay static and those files are not swallowed by Functions.
 
 ## Environment variables and bindings (Pages -> Settings)
 
@@ -75,7 +76,7 @@ Placeholder stills may ship in `public/assets/amiao/` until licensed art is read
 - `functions/api/latest.js` reads the YouTube RSS feed (long videos only, playlist `UULF...`, then the channel feed as backup). No API key. Edge cache 30 min. Thumbnails are `maxresdefault.jpg` with an `hqdefault.jpg` fallback (`thumbnailFallback`).
 - `functions/api/live.js` asks Twitch whether the channel is live, server side only. Edge cache 60 s. The browser never sees a token.
 - `functions/api/free-games.js` powers `/free` (and `/free-games.xml`). GamerPower is the source of which current games appear (Steam, Epic, GOG, itch.io and other recognized stores, including bundles already allowed by the existing filters). Adult titles are dropped: a keyword check on the GamerPower title and description, and for Steam games a lookup of the official `appdetails` content descriptors / required age after the store URL is resolved. Each claim link is followed server-side to an official store page. Any item that still points at gamerpower.com is dropped. The official Epic `freeGamesPromotions` endpoint (zh-Hant, SG) enriches matching Epic entries (title, image and exact end date) and also supplies upcoming 100% off Epic titles for the 「下週免費」 list (no claim button). If that Epic call fails, the current GamerPower list is still returned. Optional KV history (see above) fills `seenCount` and `ended`. The payload always includes `games` for RSS and compatibility. Edge cache 1 hour. Attribution for GamerPower.com, plus a note that matching or upcoming Epic entries may use official Epic data, is only on the Terms and Privacy pages. `/free-games.xml` is the same current list as RSS.
-- `functions/api/backlog.js` reads `BACKLOG_CSV_URL`, caches the result for about 10 minutes, and returns only public-safe columns (names, platform, status, genre, release date, official store link). Notes and playtime are dropped. If a `public` column exists, only public rows are kept.
+- `functions/api/backlog.js` reads `BACKLOG_CSV_URL`, caches the result for about 10 minutes, and returns only public columns (names, platform, status, genre, release date, completion date, official store link). Notes, playtime, Playnite ids and source fields are dropped. If a `public` column exists, only public rows are kept. `/backlog` filters the list in memory and renders 50 games at a time. `/spin` still loads the list but only paints a short wheel, not the full table.
 - `public/app.js` loads `/api/latest`, then `/data/latest.json`, then keeps the HTML that is already on the home page. It polls `/api/live` every 2 minutes and swaps the hero slideshow for the Twitch player while live. Offline pages contain no player iframe. Home recent videos use `data.more`, so the newest video is skipped (it is already in the hero). `/backlog` loads the 3 newest videos, including the latest (`data-skip-latest="false"`).
 - The `parent` list for the Twitch embed is `PLAYER_PARENTS` at the top of `public/app.js`. Add any new domain there. The page's own hostname is added automatically.
 - Config constants for the "next long video" line (anchor Friday, interval) are also at the top of `public/app.js`.

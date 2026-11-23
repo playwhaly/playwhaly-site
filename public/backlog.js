@@ -3,8 +3,13 @@
   var U = window.PWGames;
   var games = [];
   var payload = null;
+  var page = 1;
   var tbody = document.getElementById("game-rows");
+  var cards = document.getElementById("game-cards");
   var foot = document.getElementById("list-foot");
+  var pager = document.getElementById("list-pager");
+  var prevBtn = document.getElementById("page-prev");
+  var nextBtn = document.getElementById("page-next");
   var q = document.getElementById("q");
   var platform = document.getElementById("platform");
   var genre = document.getElementById("genre");
@@ -85,27 +90,87 @@
     if (footEl) footEl.textContent = "";
   }
 
+  function rowHtml(g) {
+    var name = U.fullName(g);
+    var genreLabel = U.genresLabel(g.genre);
+    return '<tr><td class="col-name" title="' + U.esc(name) + '">' + U.displayName(g) +
+      '</td><td class="col-platform">' + U.esc(g.platform || "—") +
+      '</td><td class="col-status">' + U.statusChip(g.status) +
+      '</td><td class="col-genre" title="' + U.esc(genreLabel) + '">' + U.esc(genreLabel) +
+      '</td><td class="col-release">' + U.esc(U.formatRelease(g.release_date)) + "</td></tr>";
+  }
+
+  function cardHtml(g) {
+    var name = U.fullName(g);
+    var genreLabel = U.genresLabel(g.genre);
+    return '<article class="game-card" title="' + U.esc(name) + '">' +
+      U.displayName(g) +
+      '<div class="game-card-meta">' + U.statusChip(g.status) +
+      "<span>" + U.esc(g.platform || "—") + "</span>" +
+      "<span>" + U.esc(genreLabel) + "</span>" +
+      "<span>" + U.esc(U.formatRelease(g.release_date)) + "</span>" +
+      "</div></article>";
+  }
+
   function render() {
+    var rows = games.filter(matches);
+    var slice = U.pageSlice(rows, page);
+    page = slice.page;
+
     if (!tbody) return;
+
     if (!games.length) {
       tbody.innerHTML = '<tr><td colspan="5">' + U.esc(emptyCopy()) + "</td></tr>";
+      if (cards) cards.innerHTML = '<article class="game-card">' + U.esc(emptyCopy()) + "</article>";
       if (foot) foot.textContent = "";
+      if (prevBtn) prevBtn.hidden = true;
+      if (nextBtn) nextBtn.hidden = true;
       return;
     }
-    var rows = games.filter(matches);
-    tbody.innerHTML = rows.map(function (g) {
-      var name = U.fullName(g);
-      var genreLabel = U.genresLabel(g.genre);
-      return '<tr><td class="col-name" title="' + U.esc(name) + '">' + U.displayName(g) +
-        '</td><td class="col-platform">' + U.esc(g.platform || "—") +
-        '</td><td class="col-status">' + U.statusChip(g.status) +
-        '</td><td class="col-genre" title="' + U.esc(genreLabel) + '">' + U.esc(genreLabel) +
-        '</td><td class="col-release">' + U.esc(U.formatRelease(g.release_date)) + "</td></tr>";
-    }).join("");
+
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="5">' + U.esc(emptyCopy()) + "</td></tr>";
+      if (cards) cards.innerHTML = '<article class="game-card">' + U.esc(emptyCopy()) + "</article>";
+    } else {
+      tbody.innerHTML = slice.items.map(rowHtml).join("");
+      if (cards) cards.innerHTML = slice.items.map(cardHtml).join("");
     }
-    if (foot) foot.textContent = "顯示 " + rows.length + "／" + games.length + " 款。";
+
+    if (foot) {
+      if (!rows.length) {
+        foot.textContent = "顯示 0／" + U.formatInt(games.length) + " 款。";
+      } else if (slice.pages > 1) {
+        foot.textContent = "第 " + U.formatInt(slice.page) + "／" + U.formatInt(slice.pages) +
+          " 頁，顯示 " + U.formatInt(slice.start) + " 到 " + U.formatInt(slice.end) +
+          "／" + U.formatInt(rows.length) + " 款";
+      } else {
+        foot.textContent = "顯示 " + U.formatInt(rows.length) + "／" + U.formatInt(games.length) + " 款。";
+      }
+    }
+
+    var showPager = !!(rows.length && slice.pages > 1);
+    if (prevBtn) {
+      prevBtn.hidden = !showPager;
+      prevBtn.disabled = slice.page <= 1;
+    }
+    if (nextBtn) {
+      nextBtn.hidden = !showPager;
+      nextBtn.disabled = slice.page >= slice.pages;
+    }
+  }
+
+  function goTo(next) {
+    page = next;
+    render();
+    var lib = document.getElementById("lib-title");
+    if (lib && lib.scrollIntoView) {
+      lib.scrollIntoView({ block: "start", behavior: "smooth" });
+    }
+  }
+
+  function resetAndRender() {
+    page = 1;
+    render();
   }
 
   document.querySelectorAll(".library .filter-chip").forEach(function (btn) {
@@ -114,12 +179,14 @@
         b.classList.toggle("is-on", b === btn);
         b.setAttribute("aria-pressed", b === btn ? "true" : "false");
       });
-      render();
+      resetAndRender();
     });
   });
-  if (q) q.addEventListener("input", render);
-  if (platform) platform.addEventListener("change", render);
-  if (genre) genre.addEventListener("change", render);
+  if (q) q.addEventListener("input", resetAndRender);
+  if (platform) platform.addEventListener("change", resetAndRender);
+  if (genre) genre.addEventListener("change", resetAndRender);
+  if (prevBtn) prevBtn.addEventListener("click", function () { if (!prevBtn.disabled) goTo(page - 1); });
+  if (nextBtn) nextBtn.addEventListener("click", function () { if (!nextBtn.disabled) goTo(page + 1); });
 
   U.loadBacklog().then(function (data) {
     payload = data;
@@ -135,6 +202,7 @@
     });
     if (platform) U.fillSelect(platform, U.uniqueSorted(plats), "全部平台");
     if (genre) U.fillSelect(genre, U.uniqueSorted(gens), "全部類型");
+    page = 1;
     render();
     if (window.PWAmiao && data && data.ok && data.stats && data.stats.todo != null) {
       window.PWAmiao.setContext({ unplayed: U.formatInt(data.stats.todo) });

@@ -175,11 +175,8 @@ export function gamesFromCsv(text) {
       genre: raw.genre || "",
       release_date: raw.release_date || "",
     };
-    if (raw.playnite_id) game.playnite_id = raw.playnite_id;
-    if (raw.store_game_id) game.store_game_id = raw.store_game_id;
-    if (raw.sources) game.sources = raw.sources;
     if (raw.completed_date) game.completed_date = raw.completed_date;
-    const appid = steamAppId({ ...raw, sources: raw.sources });
+    const appid = steamAppId({ ...raw, sources: raw.sources, store_game_id: raw.store_game_id, steam_appid: raw.steam_appid });
     if (appid) game.steam_appid = appid;
     if (raw.store_url && /^https:\/\//i.test(raw.store_url) && !/gamerpower/i.test(raw.store_url)) {
       game.store_url = raw.store_url;

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://playwhaly.com/</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://playwhaly.com/free</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://playwhaly.com/backlog</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://playwhaly.com/spin</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://playwhaly.com/terms</loc>
+    <changefreq>yearly</changefreq>
+  </url>
+  <url>
+    <loc>https://playwhaly.com/privacy</loc>
+    <changefreq>yearly</changefreq>
+  </url>
+</urlset>

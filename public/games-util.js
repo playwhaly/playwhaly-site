@@ -156,6 +156,25 @@
   function formatInt(n) {
     return Number(n || 0).toLocaleString("zh-Hant");
   }
+
+  var PAGE_SIZE = 50;
+  function pageSlice(rows, page, size) {
+    var list = Array.isArray(rows) ? rows : [];
+    var pageSize = size || PAGE_SIZE;
+    var pages = Math.max(1, Math.ceil(list.length / pageSize) || 1);
+    var p = Math.min(pages, Math.max(1, page || 1));
+    var start = (p - 1) * pageSize;
+    var items = list.slice(start, start + pageSize);
+    return {
+      items: items,
+      page: p,
+      pageSize: pageSize,
+      total: list.length,
+      start: list.length ? start + 1 : 0,
+      end: Math.min(start + items.length, list.length),
+      pages: pages
+    };
+  }
   function keyOf(g) { return g.id || g.playnite_id || g.name_en || g.display_name || g.name_zh; }
   function loadBacklog() {
     return fetch("/api/backlog").then(function (r) { return r.json(); });
@@ -182,6 +201,8 @@
     fillSelect: fillSelect,
     formatInt: formatInt,
     keyOf: keyOf,
+    PAGE_SIZE: PAGE_SIZE,
+    pageSlice: pageSlice,
     loadBacklog: loadBacklog
   };
 })(window);

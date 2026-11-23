@@ -1,5 +1,5 @@
 {
   "version": 1,
   "include": ["/api/*", "/free-games.xml"],
-  "exclude": []
+  "exclude": ["/robots.txt", "/llms.txt", "/sitemap.xml"]
 }
