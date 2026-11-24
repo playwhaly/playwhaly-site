@@ -76,6 +76,13 @@
       });
     });
   }
+  function hasPlatform(raw, selectedPlatform) {
+    var gamePlatforms = platforms(raw).map(normalizePlatform);
+    var aliases = PLATFORM_ALIASES[normalizePlatform(selectedPlatform)] || [normalizePlatform(selectedPlatform)];
+    return gamePlatforms.some(function (gamePlatform) {
+      return aliases.indexOf(gamePlatform) !== -1;
+    });
+  }
   function allowedPlatformLabel(raw) {
     var gamePlatforms = platforms(raw).map(normalizePlatform);
     return ALLOWED_PLATFORMS.find(function (allowed) {
@@ -221,6 +228,7 @@
   root.PWGames = {
     ALLOWED_PLATFORMS: ALLOWED_PLATFORMS,
     hasAllowedPlatform: hasAllowedPlatform,
+    hasPlatform: hasPlatform,
     allowedPlatformLabel: allowedPlatformLabel,
     splitGenres: splitGenres,
     genreZh: genreZh,

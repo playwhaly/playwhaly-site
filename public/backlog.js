@@ -39,7 +39,7 @@
     }
     var st = statusFilter();
     if (st && U.statusLabel(g.status) !== st) return false;
-    if (platform && platform.value && U.allowedPlatformLabel(g.platform) !== platform.value) return false;
+    if (platform && platform.value && !U.hasPlatform(g.platform, platform.value)) return false;
     if (genre && genre.value && U.splitGenres(g.genre).map(U.genreZh).indexOf(genre.value) === -1) return false;
     return true;
   }
@@ -204,7 +204,9 @@
     };
     renderStats(stats);
     renderPlaying(games.filter(function (g) { return U.statusLabel(g.status) === "遊玩中"; }));
-    renderRecent(games.filter(function (g) { return U.statusLabel(g.status) === "已完成"; }));
+    var recentlyCompleted = (Array.isArray(data.recentlyCompleted) ? data.recentlyCompleted : [])
+      .filter(function (g) { return U.hasAllowedPlatform(g.platform); });
+    renderRecent(recentlyCompleted);
     var plats = [];
     var gens = [];
     games.forEach(function (g) {

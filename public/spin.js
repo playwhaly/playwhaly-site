@@ -1,12 +1,6 @@
 (function () {
   "use strict";
   var U = window.PWGames;
-  var SPINNER_PLATFORMS = [
-    { value: "", label: "全部平台", matches: [] },
-    { value: "pc", label: U.ALLOWED_PLATFORMS[0], matches: ["PC", "Windows", "PC (Windows)"] },
-    { value: "ps4", label: U.ALLOWED_PLATFORMS[1], matches: ["PS4", "PlayStation 4", "Sony PlayStation 4"] },
-    { value: "ps5", label: U.ALLOWED_PLATFORMS[2], matches: ["PS5", "PlayStation 5", "Sony PlayStation 5"] }
-  ];
   var COLORS = ["#E4E7F8", "#F8EBDD", "#EDE4F6", "#F4F0E2", "#E3EEF6", "#F6E6E6", "#E7E3F7", "#EEF3EA", "#F8E8F0", "#E8F4F0", "#F7F0D8", "#E6EEF8"];
   var allTodo = [];
   var skipped = {};
@@ -24,38 +18,25 @@
   var resultEl = document.getElementById("result");
   var burst = document.getElementById("paw-burst");
 
-  function normalizePlatform(value) {
-    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
-  }
-
   function matchesSpinnerPlatform(rawPlatforms, selectedValue) {
-    var selected = SPINNER_PLATFORMS.filter(function (entry) { return entry.value === selectedValue; })[0];
-    if (!selected) return false;
-    if (!selected.value) {
-      return SPINNER_PLATFORMS.slice(1).some(function (allowed) {
-        return U.platforms(rawPlatforms).some(function (gamePlatform) {
-          var normalizedGamePlatform = normalizePlatform(gamePlatform);
-          return allowed.matches.some(function (alias) {
-            return normalizePlatform(alias) === normalizedGamePlatform;
-          });
-        });
-      });
-    }
-    return U.platforms(rawPlatforms).some(function (gamePlatform) {
-      var normalizedGamePlatform = normalizePlatform(gamePlatform);
-      return selected.matches.some(function (alias) {
-        return normalizePlatform(alias) === normalizedGamePlatform;
-      });
-    });
+    if (!selectedValue) return U.hasAllowedPlatform(rawPlatforms);
+    var indexByValue = { pc: 0, ps4: 1, ps5: 2 };
+    var index = indexByValue[selectedValue];
+    if (index == null) return false;
+    return U.hasPlatform(rawPlatforms, U.ALLOWED_PLATFORMS[index]);
   }
 
   function fillSpinnerPlatforms() {
     if (!platform) return;
     platform.innerHTML = "";
-    SPINNER_PLATFORMS.forEach(function (entry) {
+    var all = document.createElement("option");
+    all.value = "";
+    all.textContent = "全部平台";
+    platform.appendChild(all);
+    U.ALLOWED_PLATFORMS.forEach(function (label, index) {
       var option = document.createElement("option");
-      option.value = entry.value;
-      option.textContent = entry.label;
+      option.value = ["pc", "ps4", "ps5"][index];
+      option.textContent = label;
       platform.appendChild(option);
     });
   }
@@ -339,5 +320,5 @@
     resultEl.innerHTML = '<p class="result-placeholder">' + U.esc(emptyMessage()) + "</p>";
     if (btn) btn.disabled = true;
   });
-  window.PWSpin = { SPINNER_PLATFORMS: SPINNER_PLATFORMS, matchesSpinnerPlatform: matchesSpinnerPlatform };
+  window.PWSpin = { matchesSpinnerPlatform: matchesSpinnerPlatform };
 })();
