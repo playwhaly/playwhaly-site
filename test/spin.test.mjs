@@ -10,6 +10,7 @@ assert.match(spinHtml, /<option value="ps5">Sony PlayStation 5<\/option>/);
 
 const indexHtml = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 const description = "威利 Whaly 的小基地。各種遊戲都玩，輕鬆聊聊，一起放鬆～新影片、開台消息跟所有連結都在這裡。";
+assert.match(indexHtml, /<p class="lede">各種遊戲都玩，輕鬆聊聊，一起放鬆～<\/p>/);
 assert.equal((indexHtml.match(/<meta name="description"/g) || []).length, 1);
 assert.match(indexHtml, new RegExp(`<meta name="description" content="${description}">`));
 assert.match(indexHtml, new RegExp(`<meta property="og:description" content="${description}">`));
@@ -30,6 +31,22 @@ const ctx = {
     PWGames: {
       ALLOWED_PLATFORMS: ["PC (Windows)", "Sony PlayStation 4", "Sony PlayStation 5"],
       platforms(raw) { return String(raw || "").split(/[·•|,;\\/]+/).map((v) => v.trim()).filter(Boolean); },
+      hasAllowedPlatform(raw) {
+        const value = String(raw || "").toLowerCase();
+        return ["pc", "windows", "pc (windows)", "ps4", "playstation 4", "sony playstation 4",
+          "ps5", "playstation 5", "sony playstation 5"].some((alias) =>
+          value.split(/[·•|,;\\/]+/).some((platform) => platform.trim() === alias));
+      },
+      hasPlatform(raw, selected) {
+        const value = String(raw || "").toLowerCase();
+        const aliases = {
+          "pc (windows)": ["pc", "windows", "pc (windows)"],
+          "sony playstation 4": ["ps4", "playstation 4", "sony playstation 4"],
+          "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"]
+        }[selected.toLowerCase()] || [selected.toLowerCase()];
+        return String(value).split(/[·•|,;\\/]+/).some((platform) =>
+          aliases.includes(platform.trim()));
+      },
       splitGenres() { return []; },
       genreZh(value) { return value; },
       statusLabel(value) { return value || "未玩"; },
@@ -60,8 +77,7 @@ ctx.window.document = ctx.document;
 vm.runInNewContext(readFileSync(new URL("../public/spin.js", import.meta.url), "utf8"), ctx);
 
 const spin = ctx.window.PWSpin;
-assert.equal(spin.SPINNER_PLATFORMS.map((entry) => entry.label).join("|"),
-  "全部平台|PC (Windows)|Sony PlayStation 4|Sony PlayStation 5");
+assert.equal("SPINNER_PLATFORMS" in spin, false);
 assert.equal(spin.matchesSpinnerPlatform("PC · PS5", ""), true);
 assert.equal(spin.matchesSpinnerPlatform("Switch", ""), false);
 assert.equal(spin.matchesSpinnerPlatform("PC · Switch", "pc"), true);
