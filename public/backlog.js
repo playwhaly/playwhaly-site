@@ -31,6 +31,7 @@
   }
 
   function matches(g) {
+    if (!U.hasAllowedPlatform(g.platform)) return false;
     var query = ((q && q.value) || "").trim().toLowerCase();
     if (query) {
       var blob = ((g.display_name || "") + " " + (g.name_zh || "") + " " + (g.name_en || "")).toLowerCase();
@@ -38,7 +39,7 @@
     }
     var st = statusFilter();
     if (st && U.statusLabel(g.status) !== st) return false;
-    if (platform && platform.value && U.platforms(g.platform).indexOf(platform.value) === -1) return false;
+    if (platform && platform.value && U.allowedPlatformLabel(g.platform) !== platform.value) return false;
     if (genre && genre.value && U.splitGenres(g.genre).map(U.genreZh).indexOf(genre.value) === -1) return false;
     return true;
   }
@@ -193,22 +194,30 @@
 
   U.loadBacklog().then(function (data) {
     payload = data;
-    games = (data && data.ok && Array.isArray(data.games)) ? data.games : [];
-    renderStats(data && data.ok ? data.stats : null);
-    renderPlaying(data && data.ok ? data.playing : []);
-    renderRecent(data && data.ok ? data.recentlyCompleted : []);
+    var sourceGames = (data && data.ok && Array.isArray(data.games)) ? data.games : [];
+    games = sourceGames.filter(function (g) { return U.hasAllowedPlatform(g.platform); });
+    var stats = {
+      total: games.length,
+      completed: games.filter(function (g) { return U.statusLabel(g.status) === "已完成"; }).length,
+      playing: games.filter(function (g) { return U.statusLabel(g.status) === "遊玩中"; }).length,
+      todo: games.filter(function (g) { return U.statusLabel(g.status) === "未玩"; }).length
+    };
+    renderStats(stats);
+    renderPlaying(games.filter(function (g) { return U.statusLabel(g.status) === "遊玩中"; }));
+    renderRecent(games.filter(function (g) { return U.statusLabel(g.status) === "已完成"; }));
     var plats = [];
     var gens = [];
     games.forEach(function (g) {
-      U.platforms(g.platform).forEach(function (p) { plats.push(p); });
+      var allowed = U.allowedPlatformLabel(g.platform);
+      if (allowed) plats.push(allowed);
       U.splitGenres(g.genre).forEach(function (en) { gens.push(U.genreZh(en)); });
     });
-    if (platform) U.fillSelect(platform, U.uniqueSorted(plats), "全部平台");
+    if (platform) U.fillSelect(platform, U.ALLOWED_PLATFORMS, "全部平台");
     if (genre) U.fillSelect(genre, U.uniqueSorted(gens), "全部類型");
     page = 1;
     render();
-    if (window.PWAmiao && data && data.ok && data.stats && data.stats.todo != null) {
-      window.PWAmiao.setContext({ unplayed: U.formatInt(data.stats.todo) });
+    if (window.PWAmiao && data && data.ok) {
+      window.PWAmiao.setContext({ unplayed: U.formatInt(stats.todo) });
     }
   }).catch(function () {
     payload = { ok: false, reason: "unreachable" };

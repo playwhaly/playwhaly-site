@@ -247,6 +247,7 @@ nav{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:flex-end}
 .status-done{background:#EAF6EE;color:#2F6B45}
 .status-play{background:#EEF0FA;color:var(--link)}
 .status-todo{background:#F8F1E8;color:#7A5A3A}
+.status-dropped{background:#F5EAEA;color:#855454}
 
 /* filters + list */
 .library .tools{

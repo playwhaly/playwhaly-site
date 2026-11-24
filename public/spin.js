@@ -3,9 +3,9 @@
   var U = window.PWGames;
   var SPINNER_PLATFORMS = [
     { value: "", label: "全部平台", matches: [] },
-    { value: "pc", label: "PC (Windows)", matches: ["PC", "Windows", "PC (Windows)"] },
-    { value: "ps4", label: "Sony PlayStation 4", matches: ["PS4", "PlayStation 4", "Sony PlayStation 4"] },
-    { value: "ps5", label: "Sony PlayStation 5", matches: ["PS5", "PlayStation 5", "Sony PlayStation 5"] }
+    { value: "pc", label: U.ALLOWED_PLATFORMS[0], matches: ["PC", "Windows", "PC (Windows)"] },
+    { value: "ps4", label: U.ALLOWED_PLATFORMS[1], matches: ["PS4", "PlayStation 4", "Sony PlayStation 4"] },
+    { value: "ps5", label: U.ALLOWED_PLATFORMS[2], matches: ["PS5", "PlayStation 5", "Sony PlayStation 5"] }
   ];
   var COLORS = ["#E4E7F8", "#F8EBDD", "#EDE4F6", "#F4F0E2", "#E3EEF6", "#F6E6E6", "#E7E3F7", "#EEF3EA", "#F8E8F0", "#E8F4F0", "#F7F0D8", "#E6EEF8"];
   var allTodo = [];

@@ -9,7 +9,7 @@ assert.match(spinHtml, /<option value="ps4">Sony PlayStation 4<\/option>/);
 assert.match(spinHtml, /<option value="ps5">Sony PlayStation 5<\/option>/);
 
 const indexHtml = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
-const description = "各種遊戲都玩，輕鬆聊聊，一起放鬆～";
+const description = "威利 Whaly 的小基地。各種遊戲都玩，輕鬆聊聊，一起放鬆～新影片、開台消息跟所有連結都在這裡。";
 assert.equal((indexHtml.match(/<meta name="description"/g) || []).length, 1);
 assert.match(indexHtml, new RegExp(`<meta name="description" content="${description}">`));
 assert.match(indexHtml, new RegExp(`<meta property="og:description" content="${description}">`));
@@ -28,6 +28,7 @@ const elements = {
 const ctx = {
   window: {
     PWGames: {
+      ALLOWED_PLATFORMS: ["PC (Windows)", "Sony PlayStation 4", "Sony PlayStation 5"],
       platforms(raw) { return String(raw || "").split(/[·•|,;\\/]+/).map((v) => v.trim()).filter(Boolean); },
       splitGenres() { return []; },
       genreZh(value) { return value; },
