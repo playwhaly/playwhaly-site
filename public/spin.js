@@ -1,6 +1,12 @@
 (function () {
   "use strict";
   var U = window.PWGames;
+  var SPINNER_PLATFORMS = [
+    { value: "", label: "全部平台", matches: [] },
+    { value: "pc", label: "PC (Windows)", matches: ["PC", "Windows", "PC (Windows)"] },
+    { value: "ps4", label: "Sony PlayStation 4", matches: ["PS4", "PlayStation 4", "Sony PlayStation 4"] },
+    { value: "ps5", label: "Sony PlayStation 5", matches: ["PS5", "PlayStation 5", "Sony PlayStation 5"] }
+  ];
   var COLORS = ["#E4E7F8", "#F8EBDD", "#EDE4F6", "#F4F0E2", "#E3EEF6", "#F6E6E6", "#E7E3F7", "#EEF3EA", "#F8E8F0", "#E8F4F0", "#F7F0D8", "#E6EEF8"];
   var allTodo = [];
   var skipped = {};
@@ -18,10 +24,46 @@
   var resultEl = document.getElementById("result");
   var burst = document.getElementById("paw-burst");
 
+  function normalizePlatform(value) {
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function matchesSpinnerPlatform(rawPlatforms, selectedValue) {
+    var selected = SPINNER_PLATFORMS.filter(function (entry) { return entry.value === selectedValue; })[0];
+    if (!selected) return false;
+    if (!selected.value) {
+      return SPINNER_PLATFORMS.slice(1).some(function (allowed) {
+        return U.platforms(rawPlatforms).some(function (gamePlatform) {
+          var normalizedGamePlatform = normalizePlatform(gamePlatform);
+          return allowed.matches.some(function (alias) {
+            return normalizePlatform(alias) === normalizedGamePlatform;
+          });
+        });
+      });
+    }
+    return U.platforms(rawPlatforms).some(function (gamePlatform) {
+      var normalizedGamePlatform = normalizePlatform(gamePlatform);
+      return selected.matches.some(function (alias) {
+        return normalizePlatform(alias) === normalizedGamePlatform;
+      });
+    });
+  }
+
+  function fillSpinnerPlatforms() {
+    if (!platform) return;
+    platform.innerHTML = "";
+    SPINNER_PLATFORMS.forEach(function (entry) {
+      var option = document.createElement("option");
+      option.value = entry.value;
+      option.textContent = entry.label;
+      platform.appendChild(option);
+    });
+  }
+
   function pool() {
     return allTodo.filter(function (g) {
       if (skipped[U.keyOf(g)]) return false;
-      if (platform.value && U.platforms(g.platform).indexOf(platform.value) === -1) return false;
+      if (!matchesSpinnerPlatform(g.platform, platform.value)) return false;
       if (genre.value && U.splitGenres(g.genre).map(U.genreZh).indexOf(genre.value) === -1) return false;
       return true;
     });
@@ -276,22 +318,20 @@
     allTodo = (data && data.ok && Array.isArray(data.games))
       ? data.games.filter(function (g) { return U.statusLabel(g.status) === "未玩"; })
       : [];
-    var plats = [];
     var gens = [];
     allTodo.forEach(function (g) {
-      U.platforms(g.platform).forEach(function (p) { plats.push(p); });
       U.splitGenres(g.genre).forEach(function (en) { gens.push(U.genreZh(en)); });
     });
-    if (platform) U.fillSelect(platform, U.uniqueSorted(plats), "全部平台");
+    fillSpinnerPlatforms();
     if (genre) U.fillSelect(genre, U.uniqueSorted(gens), "全部類型");
     updateCount();
-    if (!allTodo.length) {
+    if (!pool().length) {
       paint([]);
       resultEl.innerHTML = '<p class="result-placeholder">' + U.esc(emptyMessage()) + "</p>";
       btn.disabled = true;
       return;
     }
-    paint(pickWheelGames(allTodo));
+    paint(pickWheelGames(pool()));
     resultEl.innerHTML = '<p class="result-placeholder">按「轉！」從還沒玩的遊戲裡抽一個。</p>';
     btn.disabled = false;
   }).catch(function () {
@@ -299,4 +339,5 @@
     resultEl.innerHTML = '<p class="result-placeholder">' + U.esc(emptyMessage()) + "</p>";
     if (btn) btn.disabled = true;
   });
+  window.PWSpin = { SPINNER_PLATFORMS: SPINNER_PLATFORMS, matchesSpinnerPlatform: matchesSpinnerPlatform };
 })();
