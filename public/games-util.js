@@ -2,6 +2,18 @@
 (function (root) {
   "use strict";
 
+  var ALLOWED_PLATFORMS = [
+    "PC (Windows)",
+    "Sony PlayStation 4",
+    "Sony PlayStation 5"
+  ];
+
+  var PLATFORM_ALIASES = {
+    "pc (windows)": ["pc", "windows", "pc (windows)"],
+    "sony playstation 4": ["ps4", "playstation 4", "sony playstation 4"],
+    "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"]
+  };
+
   var GENRE_ZH = {
     "Adventure": "冒險",
     "Indie": "獨立",
@@ -50,6 +62,35 @@
   }
   function platforms(raw) {
     return String(raw || "").split(/[·•|,;/]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+  function normalizePlatform(value) {
+    return String(value || "").trim().toLowerCase().replace(/\s+/g, " ");
+  }
+  function hasAllowedPlatform(raw) {
+    var gamePlatforms = platforms(raw).map(normalizePlatform);
+    if (!gamePlatforms.length) return false;
+    return ALLOWED_PLATFORMS.some(function (allowed) {
+      var aliases = PLATFORM_ALIASES[normalizePlatform(allowed)] || [allowed];
+      return gamePlatforms.some(function (gamePlatform) {
+        return aliases.indexOf(gamePlatform) !== -1;
+      });
+    });
+  }
+  function hasPlatform(raw, selectedPlatform) {
+    var gamePlatforms = platforms(raw).map(normalizePlatform);
+    var aliases = PLATFORM_ALIASES[normalizePlatform(selectedPlatform)] || [normalizePlatform(selectedPlatform)];
+    return gamePlatforms.some(function (gamePlatform) {
+      return aliases.indexOf(gamePlatform) !== -1;
+    });
+  }
+  function allowedPlatformLabel(raw) {
+    var gamePlatforms = platforms(raw).map(normalizePlatform);
+    return ALLOWED_PLATFORMS.find(function (allowed) {
+      var aliases = PLATFORM_ALIASES[normalizePlatform(allowed)] || [allowed];
+      return gamePlatforms.some(function (gamePlatform) {
+        return aliases.indexOf(gamePlatform) !== -1;
+      });
+    }) || "";
   }
   function formatRelease(s) {
     if (!s) return "—";
@@ -124,13 +165,17 @@
     var map = {
       completed: "已完成", done: "已完成", finished: "已完成", "已完成": "已完成",
       playing: "遊玩中", "in progress": "遊玩中", "in-progress": "遊玩中", "遊玩中": "遊玩中",
-      planned: "未玩", backlog: "未玩", todo: "未玩", unplayed: "未玩", "未玩": "未玩"
+      planned: "未玩", backlog: "未玩", todo: "未玩", unplayed: "未玩", "未玩": "未玩",
+      dropped: "放棄", abandoned: "放棄", "放棄": "放棄"
     };
     return map[v] || map[v.toLowerCase()] || v || "未玩";
   }
   function statusChip(status) {
     var label = statusLabel(status);
-    var cls = label === "已完成" ? "status-done" : label === "遊玩中" ? "status-play" : "status-todo";
+    var cls = label === "已完成" ? "status-done"
+      : label === "遊玩中" ? "status-play"
+      : label === "放棄" ? "status-dropped"
+      : "status-todo";
     return '<span class="status-chip ' + cls + '">' + esc(label) + "</span>";
   }
   function uniqueSorted(values) {
@@ -181,6 +226,10 @@
   }
 
   root.PWGames = {
+    ALLOWED_PLATFORMS: ALLOWED_PLATFORMS,
+    hasAllowedPlatform: hasAllowedPlatform,
+    hasPlatform: hasPlatform,
+    allowedPlatformLabel: allowedPlatformLabel,
     splitGenres: splitGenres,
     genreZh: genreZh,
     genresLabel: genresLabel,

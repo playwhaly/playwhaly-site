@@ -91,9 +91,21 @@ assert.deepEqual(slice.items, Array.from({ length: 50 }, (_, i) => i + 51));
 const clamped = ctx.PWGames.pageSlice([1, 2, 3], 99, 50);
 assert.equal(clamped.page, 1);
 assert.deepEqual(clamped.items, [1, 2, 3]);
+assert.equal(ctx.PWGames.ALLOWED_PLATFORMS.join("|"),
+  "PC (Windows)|Sony PlayStation 4|Sony PlayStation 5");
+assert.equal(ctx.PWGames.hasAllowedPlatform("PC · Switch"), true);
+assert.equal(ctx.PWGames.hasAllowedPlatform("PS5"), true);
+assert.equal(ctx.PWGames.hasAllowedPlatform("Switch · Xbox"), false);
+assert.equal(ctx.PWGames.hasAllowedPlatform(""), false);
+assert.equal(ctx.PWGames.hasPlatform("PC · Sony PlayStation 4", "Sony PlayStation 4"), true);
+assert.equal(ctx.PWGames.hasPlatform("PS5", "Sony PlayStation 5"), true);
+assert.equal(ctx.PWGames.hasPlatform("Windows · Sony PlayStation 5", "Sony PlayStation 4"), false);
+assert.equal(ctx.PWGames.statusLabel("放棄"), "放棄");
+assert.equal(ctx.PWGames.statusLabel("dropped"), "放棄");
+assert.match(ctx.PWGames.statusChip("放棄"), /status-dropped/);
 
 assert.equal(isAllowedCsvUrl("https://doc-0s-bc-sheets.googleusercontent.com/pub/abc/def?output=csv"), true);
-assert.equal(isAllowedCsvUrl("https://googleusercontent.com.evil.example/x.csv"), false);
+assert.equal(isAllowedCsvUrl("https://evil.example/csv"), false);
 assert.equal(isAllowedCsvUrl("https://evilgoogleusercontent.com/x.csv"), false);
 
 console.log("all backlog tests passed");

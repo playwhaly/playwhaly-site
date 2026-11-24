@@ -18,10 +18,33 @@
   var resultEl = document.getElementById("result");
   var burst = document.getElementById("paw-burst");
 
+  function matchesSpinnerPlatform(rawPlatforms, selectedValue) {
+    if (!selectedValue) return U.hasAllowedPlatform(rawPlatforms);
+    var indexByValue = { pc: 0, ps4: 1, ps5: 2 };
+    var index = indexByValue[selectedValue];
+    if (index == null) return false;
+    return U.hasPlatform(rawPlatforms, U.ALLOWED_PLATFORMS[index]);
+  }
+
+  function fillSpinnerPlatforms() {
+    if (!platform) return;
+    platform.innerHTML = "";
+    var all = document.createElement("option");
+    all.value = "";
+    all.textContent = "全部平台";
+    platform.appendChild(all);
+    U.ALLOWED_PLATFORMS.forEach(function (label, index) {
+      var option = document.createElement("option");
+      option.value = ["pc", "ps4", "ps5"][index];
+      option.textContent = label;
+      platform.appendChild(option);
+    });
+  }
+
   function pool() {
     return allTodo.filter(function (g) {
       if (skipped[U.keyOf(g)]) return false;
-      if (platform.value && U.platforms(g.platform).indexOf(platform.value) === -1) return false;
+      if (!matchesSpinnerPlatform(g.platform, platform.value)) return false;
       if (genre.value && U.splitGenres(g.genre).map(U.genreZh).indexOf(genre.value) === -1) return false;
       return true;
     });
@@ -276,22 +299,20 @@
     allTodo = (data && data.ok && Array.isArray(data.games))
       ? data.games.filter(function (g) { return U.statusLabel(g.status) === "未玩"; })
       : [];
-    var plats = [];
     var gens = [];
     allTodo.forEach(function (g) {
-      U.platforms(g.platform).forEach(function (p) { plats.push(p); });
       U.splitGenres(g.genre).forEach(function (en) { gens.push(U.genreZh(en)); });
     });
-    if (platform) U.fillSelect(platform, U.uniqueSorted(plats), "全部平台");
+    fillSpinnerPlatforms();
     if (genre) U.fillSelect(genre, U.uniqueSorted(gens), "全部類型");
     updateCount();
-    if (!allTodo.length) {
+    if (!pool().length) {
       paint([]);
       resultEl.innerHTML = '<p class="result-placeholder">' + U.esc(emptyMessage()) + "</p>";
       btn.disabled = true;
       return;
     }
-    paint(pickWheelGames(allTodo));
+    paint(pickWheelGames(pool()));
     resultEl.innerHTML = '<p class="result-placeholder">按「轉！」從還沒玩的遊戲裡抽一個。</p>';
     btn.disabled = false;
   }).catch(function () {
@@ -299,4 +320,5 @@
     resultEl.innerHTML = '<p class="result-placeholder">' + U.esc(emptyMessage()) + "</p>";
     if (btn) btn.disabled = true;
   });
+  window.PWSpin = { matchesSpinnerPlatform: matchesSpinnerPlatform };
 })();
