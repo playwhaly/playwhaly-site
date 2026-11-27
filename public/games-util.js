@@ -5,13 +5,21 @@
   var ALLOWED_PLATFORMS = [
     "PC (Windows)",
     "Sony PlayStation 4",
-    "Sony PlayStation 5"
+    "Sony PlayStation 5",
+    "Nintendo Switch"
   ];
 
+  // /backlog and /spin show (and filter on) at most this many genres per game.
+  var MAX_GENRES = 4;
+
   var PLATFORM_ALIASES = {
-    "pc (windows)": ["pc", "windows", "pc (windows)"],
+    // The Public tab lists PC games by store (Steam, GOG, Epic, ...), so those all count as PC.
+    "pc (windows)": ["pc", "windows", "pc (windows)", "steam", "gog", "epic", "epic games", "epic games store",
+      "amazon", "amazon games", "ubisoft connect", "uplay", "battle.net", "ea app", "origin", "itch.io",
+      "microsoft store", "xbox (pc)", "humble", "rockstar games launcher"],
     "sony playstation 4": ["ps4", "playstation 4", "sony playstation 4"],
-    "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"]
+    "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"],
+    "nintendo switch": ["nintendo switch", "switch"]
   };
 
   var GENRE_ZH = {
@@ -54,7 +62,8 @@
   };
 
   function splitGenres(raw) {
-    return String(raw || "").split(/[,、;/]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return String(raw || "").split(/[,、;/]+/).map(function (s) { return s.trim(); }).filter(Boolean)
+      .slice(0, MAX_GENRES);
   }
   function genreZh(en) { return GENRE_ZH[en] || en; }
   function genresLabel(raw) {
@@ -141,9 +150,10 @@
     return "";
   }
   function coverSrc(g) {
+    if (g && g.cover) return g.cover;
     var id = steamAppId(g);
     if (id) return "https://cdn.cloudflare.steamstatic.com/steam/apps/" + id + "/header.jpg";
-    return (g && g.cover) || "";
+    return "";
   }
   function coverFallback(g) {
     var id = steamAppId(g);
@@ -155,6 +165,21 @@
     var id = steamAppId(g);
     if (id) return "https://store.steampowered.com/app/" + id + "/";
     return "";
+  }
+  // Newest added first (added_date is YYYY-MM-DD), games with no date last, ties by name.
+  var nameCollator = (typeof Intl !== "undefined" && Intl.Collator) ? new Intl.Collator("zh-Hant", { numeric: true, sensitivity: "base" }) : null;
+  function sortByAdded(list) {
+    return (list || []).slice().sort(function (a, b) {
+      var da = /^\d{4}-\d{2}-\d{2}$/.test(a.added_date || "") ? a.added_date : "";
+      var db = /^\d{4}-\d{2}-\d{2}$/.test(b.added_date || "") ? b.added_date : "";
+      if (da !== db) {
+        if (!da) return 1;
+        if (!db) return -1;
+        return da < db ? 1 : -1;
+      }
+      var na = fullName(a), nb = fullName(b);
+      return nameCollator ? nameCollator.compare(na, nb) : (na < nb ? -1 : na > nb ? 1 : 0);
+    });
   }
   function esc(s) {
     return String(s == null ? "" : s)
@@ -227,6 +252,7 @@
 
   root.PWGames = {
     ALLOWED_PLATFORMS: ALLOWED_PLATFORMS,
+    MAX_GENRES: MAX_GENRES,
     hasAllowedPlatform: hasAllowedPlatform,
     hasPlatform: hasPlatform,
     allowedPlatformLabel: allowedPlatformLabel,
@@ -243,6 +269,7 @@
     coverSrc: coverSrc,
     coverFallback: coverFallback,
     storeUrl: storeUrl,
+    sortByAdded: sortByAdded,
     esc: esc,
     statusLabel: statusLabel,
     statusChip: statusChip,

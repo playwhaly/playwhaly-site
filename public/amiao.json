@@ -38,6 +38,18 @@
         { "when": "unplayed", "text": "還有 {unplayed} 款沒玩喵…" }
       ]
     },
+    "tier": {
+      "image": "smirk.webp",
+      "lines": [
+        "S 到 D，純屬個人口味喵～",
+        "換個年份，看看那年玩了什麼",
+        "有影片的可以點進去看喵",
+        "排名不服的話，歡迎來留言～"
+      ],
+      "templates": [
+        { "when": "count", "text": "{year} 年分了 {count} 款喵～" }
+      ]
+    },
     "spin": {
       "image": "playful.webp",
       "lines": [

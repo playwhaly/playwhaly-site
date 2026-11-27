@@ -94,14 +94,36 @@
     if (footEl) footEl.textContent = "";
   }
 
+  // Optional columns are dropped when no game in the list has a value for them, so the table never shows an empty column.
+  var OPTIONAL_COLS = {
+    platform: function (g) { return String(g.platform || "").trim(); },
+    genre: function (g) { return String(g.genre || "").trim(); }
+  };
+  var shownCols = { platform: true, genre: true };
+
+  function updateColumns(list) {
+    Object.keys(OPTIONAL_COLS).forEach(function (key) {
+      var has = list.some(function (g) { return !!OPTIONAL_COLS[key](g); });
+      shownCols[key] = has;
+      document.querySelectorAll('.games [data-col="' + key + '"]').forEach(function (el) {
+        el.hidden = !has;
+        if (el.tagName === "COL") el.style.display = has ? "" : "none";
+      });
+    });
+  }
+
+  function colCount() {
+    return 2 + (shownCols.platform ? 1 : 0) + (shownCols.genre ? 1 : 0);
+  }
+
   function rowHtml(g) {
     var name = U.fullName(g);
     var genreLabel = U.genresLabel(g.genre);
-    return '<tr><td class="col-name" title="' + U.esc(name) + '">' + U.displayName(g) +
-      '</td><td class="col-platform">' + U.esc(g.platform || "—") +
-      '</td><td class="col-status">' + U.statusChip(g.status) +
-      '</td><td class="col-genre" title="' + U.esc(genreLabel) + '">' + U.esc(genreLabel) +
-      '</td><td class="col-release">' + U.esc(U.formatRelease(g.release_date)) + "</td></tr>";
+    var plat = g.platform || "—";
+    return '<tr><td class="col-name" title="' + U.esc(name) + '">' + U.displayName(g) + "</td>" +
+      (shownCols.platform ? '<td class="col-platform" title="' + U.esc(plat) + '">' + U.esc(plat) + "</td>" : "") +
+      (shownCols.genre ? '<td class="col-genre" title="' + U.esc(genreLabel) + '">' + U.esc(genreLabel) + "</td>" : "") +
+      '<td class="col-status">' + U.statusChip(g.status) + "</td></tr>";
   }
 
   function cardHtml(g) {
@@ -109,10 +131,10 @@
     var genreLabel = U.genresLabel(g.genre);
     return '<article class="game-card" title="' + U.esc(name) + '">' +
       U.displayName(g) +
-      '<div class="game-card-meta">' + U.statusChip(g.status) +
-      "<span>" + U.esc(g.platform || "—") + "</span>" +
-      "<span>" + U.esc(genreLabel) + "</span>" +
-      "<span>" + U.esc(U.formatRelease(g.release_date)) + "</span>" +
+      '<div class="game-card-meta">' +
+      (shownCols.platform ? "<span>" + U.esc(g.platform || "—") + "</span>" : "") +
+      (shownCols.genre ? "<span>" + U.esc(genreLabel) + "</span>" : "") +
+      U.statusChip(g.status) +
       "</div></article>";
   }
 
@@ -124,7 +146,7 @@
     if (!tbody) return;
 
     if (!games.length) {
-      tbody.innerHTML = '<tr><td colspan="5">' + U.esc(emptyCopy()) + "</td></tr>";
+      tbody.innerHTML = '<tr><td colspan="' + colCount() + '">' + U.esc(emptyCopy()) + "</td></tr>";
       if (cards) cards.innerHTML = '<article class="game-card">' + U.esc(emptyCopy()) + "</article>";
       if (foot) foot.textContent = "";
       if (prevBtn) prevBtn.hidden = true;
@@ -133,7 +155,7 @@
     }
 
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="5">' + U.esc(emptyCopy()) + "</td></tr>";
+      tbody.innerHTML = '<tr><td colspan="' + colCount() + '">' + U.esc(emptyCopy()) + "</td></tr>";
       if (cards) cards.innerHTML = '<article class="game-card">' + U.esc(emptyCopy()) + "</article>";
     } else {
       tbody.innerHTML = slice.items.map(rowHtml).join("");
@@ -195,13 +217,14 @@
   U.loadBacklog().then(function (data) {
     payload = data;
     var sourceGames = (data && data.ok && Array.isArray(data.games)) ? data.games : [];
-    games = sourceGames.filter(function (g) { return U.hasAllowedPlatform(g.platform); });
+    games = U.sortByAdded(sourceGames.filter(function (g) { return U.hasAllowedPlatform(g.platform); }));
     var stats = {
       total: games.length,
       completed: games.filter(function (g) { return U.statusLabel(g.status) === "已完成"; }).length,
       playing: games.filter(function (g) { return U.statusLabel(g.status) === "遊玩中"; }).length,
       todo: games.filter(function (g) { return U.statusLabel(g.status) === "未玩"; }).length
     };
+    updateColumns(games);
     renderStats(stats);
     renderPlaying(games.filter(function (g) { return U.statusLabel(g.status) === "遊玩中"; }));
     var recentlyCompleted = (Array.isArray(data.recentlyCompleted) ? data.recentlyCompleted : [])

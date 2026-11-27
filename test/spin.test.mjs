@@ -7,6 +7,7 @@ assert.match(spinHtml, /<option value="">全部平台<\/option>/);
 assert.match(spinHtml, /<option value="pc">PC \(Windows\)<\/option>/);
 assert.match(spinHtml, /<option value="ps4">Sony PlayStation 4<\/option>/);
 assert.match(spinHtml, /<option value="ps5">Sony PlayStation 5<\/option>/);
+assert.match(spinHtml, /<option value="switch">Nintendo Switch<\/option>/);
 
 const indexHtml = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
 const description = "威利 Whaly 的小基地。各種遊戲都玩，輕鬆聊聊，一起放鬆～新影片、開台消息跟所有連結都在這裡。";
@@ -74,12 +75,26 @@ const ctx = {
 };
 ctx.window.window = ctx.window;
 ctx.window.document = ctx.document;
+// Use the real platform helpers from games-util.js, so the wheel and /backlog agree on platforms.
+{
+  const utilCtx = { window: {} };
+  utilCtx.window = utilCtx;
+  vm.runInNewContext(readFileSync(new URL("../public/games-util.js", import.meta.url), "utf8"), utilCtx);
+  for (const k of ["ALLOWED_PLATFORMS", "platforms", "hasAllowedPlatform", "hasPlatform"]) {
+    ctx.window.PWGames[k] = utilCtx.PWGames[k];
+  }
+}
 vm.runInNewContext(readFileSync(new URL("../public/spin.js", import.meta.url), "utf8"), ctx);
 
 const spin = ctx.window.PWSpin;
 assert.equal("SPINNER_PLATFORMS" in spin, false);
 assert.equal(spin.matchesSpinnerPlatform("PC · PS5", ""), true);
-assert.equal(spin.matchesSpinnerPlatform("Switch", ""), false);
+assert.equal(spin.matchesSpinnerPlatform("Xbox", ""), false);
+assert.equal(spin.matchesSpinnerPlatform("Nintendo Switch", ""), true);
+assert.equal(spin.matchesSpinnerPlatform("Nintendo Switch", "switch"), true);
+assert.equal(spin.matchesSpinnerPlatform("Nintendo Switch", "pc"), false);
+assert.equal(spin.matchesSpinnerPlatform("Steam", "switch"), false);
+assert.equal(spin.matchesSpinnerPlatform("Steam", "pc"), true);
 assert.equal(spin.matchesSpinnerPlatform("PC · Switch", "pc"), true);
 assert.equal(spin.matchesSpinnerPlatform("Sony PlayStation 4 · Switch", "ps4"), true);
 assert.equal(spin.matchesSpinnerPlatform("PS5", "ps5"), true);
