@@ -49,7 +49,7 @@ assert.equal(by["New Popup Game"].notes_en, "English only review");
 assert.equal(by["New Popup Game"].notes_zh, "", "no auto-translation");
 for (const g of games) {
   for (const k of Object.keys(g)) {
-    assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url", "store_label", "cover"].includes(k), k);
+    assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url", "store_label", "store_status", "cover"].includes(k), k);
   }
 }
 
@@ -182,10 +182,10 @@ console.log("all tier tests passed");
   assert.equal(c["Bloodborne"].steam_appid, undefined);
   assert.equal(c["Bloodborne"].store_url, undefined, "a cover_url never adds a store link");
   assert.equal(c["Pokémon UNITE"].cover, nin, "a quoted URL with commas survives the CSV");
-  assert.equal(c["Diablo IV"].steam_appid, "2344520", "cover_steam_appid wins over cover_url");
-  assert.equal(c["Diablo IV"].cover, undefined);
-  assert.equal(c["The Forest"].steam_appid, "242760", "a Steam row keeps its own cover");
-  assert.equal(c["The Forest"].cover, undefined);
+  assert.equal(c["Diablo IV"].steam_appid, "2344520", "cover_steam_appid still supplies the Steam id");
+  assert.equal(c["Diablo IV"].cover, ps, "an allowlisted cover_url is also emitted when a steam_appid is present");
+  assert.equal(c["The Forest"].steam_appid, "242760");
+  assert.equal(c["The Forest"].cover, ps, "an explicit cover_url is preferred over a constructed Steam header");
   for (const n of ["Http Cover", "Evil Host", "Lookalike Host", "Script Cover", "Userinfo Cover", "Quote Cover", "Port Cover"]) {
     assert.equal(c[n].cover, undefined, n);
   }
@@ -251,6 +251,60 @@ console.log("all tier tests passed");
   assert.equal(storeUrlFor("https://www.ubisoft.com/game/x"), "", "www.ubisoft.com is not the store host");
 }
 
+
+// An allowlisted cover_url is preferred in the payload even when a Steam id is present.
+{
+  const header = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4025700/2228fe487077813485fe804a4f8311c289d69901/header_alt_assets_1.jpg?t=1794428767";
+  const games = tierGamesFromCsv([
+    "year,name_zh,name_en,tier,notes_en,notes_zh,store_game_id,platform,cover_steam_appid,cover_url",
+    "2026,心動小鎮,Heartopia,A,,可愛,4025700,Steam,," + header,
+  ].join("\n"));
+  assert.equal(games[0].steam_appid, "4025700");
+  assert.equal(games[0].cover, header);
+}
+
+// store_url: Steam /sub/, PlayStation /concept/, www.playstation.com, and an explicit delisted marker.
+{
+  const sub = "https://store.steampowered.com/sub/31292/";
+  const concept = "https://store.playstation.com/en-sg/concept/232283";
+  const psSite = "https://www.playstation.com/en-sg/games/alan-wake-remastered/";
+  const ms = "https://apps.microsoft.com/detail/9n9dkmnl85xz";
+  const games = tierGamesFromCsv([
+    "year,name_zh,name_en,tier,notes_en,notes_zh,store_game_id,platform,cover_steam_appid,cover_url,store_url",
+    "2018,冤罪殺機 決定版,Dishonored: Definitive Edition,A,,x,1724969043,Steam,,," + sub,
+    "2019,卡拉邦,Caravan Stories,C,,x,CUSA1,PS4,,," + concept,
+    "2023,心靈殺手 復刻版,Alan Wake Remastered,B,,x,CUSA2,PS5,,," + psSite,
+    "2019,暗黑破壞神 3,Diablo III: Ultimate Evil Edition,A,,x,CUSA3,PS4,,," + ms,
+    "2015,駕駛俱樂部,Driveclub,C,,x,CUSA4,PS4,,,delisted",
+    "2016,鋼彈 激戰任務,Gundam Battle Operation Next,C,,x,123456,Steam,,,DELISTED",
+    "2016,天命,Destiny,A,,x,CUSA5,PS4,,,https://store.playstation.com/en-sg/product/UP0002-CUSA00219_00-ASIAOLLECTION001",
+  ].join("\n"));
+  const c = Object.fromEntries(games.map((g) => [g.name_en, g]));
+  assert.equal(c["Dishonored: Definitive Edition"].store_url, sub);
+  assert.equal(c["Dishonored: Definitive Edition"].store_label, "在 Steam 看看");
+  assert.equal(c["Caravan Stories"].store_url, concept);
+  assert.equal(c["Caravan Stories"].store_label, "在 PlayStation Store 看看");
+  assert.equal(c["Alan Wake Remastered"].store_url, psSite);
+  assert.equal(c["Alan Wake Remastered"].store_label, "在 PlayStation 看看");
+  assert.equal(c["Diablo III: Ultimate Evil Edition"].store_url, ms);
+  assert.equal(c["Diablo III: Ultimate Evil Edition"].store_label, "在 Microsoft Store 看看");
+  assert.equal(c["Driveclub"].store_status, "delisted");
+  assert.equal(c["Driveclub"].store_label, "已下架");
+  assert.equal(c["Driveclub"].store_url, undefined, "a delisted marker never becomes a link");
+  assert.equal(c["Gundam Battle Operation Next"].store_status, "delisted");
+  assert.equal(c["Gundam Battle Operation Next"].store_url, undefined, "delisted wins over a Steam-id fallback");
+  assert.equal(c["Gundam Battle Operation Next"].steam_appid, "123456");
+  assert.equal(storeUrlFor(sub), sub, "Steam /sub/ paths are accepted");
+  assert.equal(storeUrlFor(concept), concept, "PlayStation /concept/ paths are accepted");
+  assert.equal(storeUrlFor(psSite), psSite);
+  assert.equal(storeLabelFor(psSite), "在 PlayStation 看看");
+}
+
 const tierJs = readFileSync(new URL("../public/tier.js", import.meta.url), "utf8");
 assert.match(tierJs, /store_label/);
 assert.match(tierJs, /在 Steam 看看/);
+const utilJs = readFileSync(new URL("../public/games-util.js", import.meta.url), "utf8");
+assert.match(utilJs, /if \(g && g\.cover\) return g\.cover/, "the client prefers an explicit cover over a constructed Steam header");
+assert.match(tierJs, /store_status === "delisted"/);
+assert.match(tierJs, /is-delisted/);
+assert.match(tierJs, /已下架/);

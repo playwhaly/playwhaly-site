@@ -59,7 +59,9 @@
       parts.push('<a class="tier-link is-video" href="' + esc(first.url) + '" target="_blank" rel="noopener" title="' +
         esc(first.title) + '">▶ ' + esc(KIND_LABEL[first.type] || "影片") + "</a>");
     }
-    if (g.store_url) {
+    if (g.store_status === "delisted") {
+      parts.push('<span class="tier-link is-delisted">' + esc(g.store_label || "已下架") + "</span>");
+    } else if (g.store_url) {
       parts.push('<a class="tier-link" href="' + esc(g.store_url) + '" target="_blank" rel="noopener">' +
         esc(g.store_label || "在 Steam 看看") + "</a>");
     }

@@ -839,6 +839,7 @@ select.select{padding-right:1.6rem;background-image:linear-gradient(45deg,transp
 .tier-links{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.2rem}
 .tier-link{display:inline-flex;align-items:center;min-height:32px;font-size:.8rem;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:999px;padding:.2rem .7rem;color:var(--link)}
 .tier-link.is-video{background:var(--accent);border-color:var(--accent);color:#fff}
+.tier-link.is-delisted{color:#6b6570;background:#EDE7F6;border-color:#D9D4DC;cursor:default;pointer-events:none}
 .tier-more{font-size:.8rem;color:var(--muted)}
 .tier-more summary{cursor:pointer;font-weight:700;min-height:28px}
 .tier-more ul{margin:.3rem 0 0;padding-left:1rem}

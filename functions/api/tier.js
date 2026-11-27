@@ -52,7 +52,7 @@ export function coverAppIdFor(raw) {
   return /^\d{1,9}$/.test(id) ? id : "";
 }
 
-// cover_url: a hand-checked official cover or key art for games with no Steam cover. Only https, only on
+// cover_url: a hand-checked official cover or key art, preferred over a constructed Steam header.jpg. Only https, only on
 // these official store and publisher image hosts, no credentials, no odd ports. Anything else is dropped.
 export const COVER_HOSTS = [
   "image.api.playstation.com",
@@ -92,6 +92,7 @@ export const STORE_HOSTS = {
   "apps.microsoft.com": "在 Microsoft Store 看看",
   "www.ea.com": "在 EA 看看",
   "store.steampowered.com": "在 Steam 看看",
+  "www.playstation.com": "在 PlayStation 看看",
 };
 
 export function storeUrlFor(raw) {
@@ -145,25 +146,30 @@ export function tierGamesFromCsv(text) {
       // cover_steam_appid column names one.
       const cover = coverAppIdFor(r.cover_steam_appid);
       if (cover) g.steam_appid = cover;
-      else {
-        // Otherwise an official image URL from the sheet's cover_url column, when its host is allowed.
-        const url = coverUrlFor(r.cover_url);
-        if (url) g.cover = url;
-      }
     }
+    // An allowlisted cover_url is preferred over a constructed Steam header.jpg, including when a
+    // steam_appid is present. Newer Steam apps often 404 at the legacy CDN path.
+    const url = coverUrlFor(r.cover_url);
+    if (url) g.cover = url;
     // Official store button: prefer a hand-checked store_url for the platform actually played.
     // If that is missing or not on an allowed host, fall back to the Steam page when we have an app id
     // (the Steam-platform id, or cover_steam_appid). Owner's choice, 27 Nov 2026.
-    const official = storeUrlFor(r.store_url);
-    if (official) {
-      const label = storeLabelFor(official);
-      if (label) {
-        g.store_url = official;
-        g.store_label = label;
+    // A cell value of "delisted" is an explicit marker: show a non-clickable 已下架 pill, no fallback.
+    if (/^delisted$/i.test(clean(r.store_url))) {
+      g.store_status = "delisted";
+      g.store_label = "已下架";
+    } else {
+      const official = storeUrlFor(r.store_url);
+      if (official) {
+        const label = storeLabelFor(official);
+        if (label) {
+          g.store_url = official;
+          g.store_label = label;
+        }
+      } else if (g.steam_appid) {
+        g.store_url = steamStoreUrl(g.steam_appid);
+        g.store_label = "在 Steam 看看";
       }
-    } else if (g.steam_appid) {
-      g.store_url = steamStoreUrl(g.steam_appid);
-      g.store_label = "在 Steam 看看";
     }
     out.push(g);
   }

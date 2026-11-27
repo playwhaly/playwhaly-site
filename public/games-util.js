@@ -150,9 +150,10 @@
     return "";
   }
   function coverSrc(g) {
+    if (g && g.cover) return g.cover;
     var id = steamAppId(g);
     if (id) return "https://cdn.cloudflare.steamstatic.com/steam/apps/" + id + "/header.jpg";
-    return (g && g.cover) || "";
+    return "";
   }
   function coverFallback(g) {
     var id = steamAppId(g);
