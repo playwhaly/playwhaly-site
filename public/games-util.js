@@ -5,8 +5,12 @@
   var ALLOWED_PLATFORMS = [
     "PC (Windows)",
     "Sony PlayStation 4",
-    "Sony PlayStation 5"
+    "Sony PlayStation 5",
+    "Nintendo Switch"
   ];
+
+  // /backlog and /spin show (and filter on) at most this many genres per game.
+  var MAX_GENRES = 4;
 
   var PLATFORM_ALIASES = {
     // The Public tab lists PC games by store (Steam, GOG, Epic, ...), so those all count as PC.
@@ -14,7 +18,8 @@
       "amazon", "amazon games", "ubisoft connect", "uplay", "battle.net", "ea app", "origin", "itch.io",
       "microsoft store", "xbox (pc)", "humble", "rockstar games launcher"],
     "sony playstation 4": ["ps4", "playstation 4", "sony playstation 4"],
-    "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"]
+    "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"],
+    "nintendo switch": ["nintendo switch", "switch"]
   };
 
   var GENRE_ZH = {
@@ -57,7 +62,8 @@
   };
 
   function splitGenres(raw) {
-    return String(raw || "").split(/[,、;/]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    return String(raw || "").split(/[,、;/]+/).map(function (s) { return s.trim(); }).filter(Boolean)
+      .slice(0, MAX_GENRES);
   }
   function genreZh(en) { return GENRE_ZH[en] || en; }
   function genresLabel(raw) {
@@ -245,6 +251,7 @@
 
   root.PWGames = {
     ALLOWED_PLATFORMS: ALLOWED_PLATFORMS,
+    MAX_GENRES: MAX_GENRES,
     hasAllowedPlatform: hasAllowedPlatform,
     hasPlatform: hasPlatform,
     allowedPlatformLabel: allowedPlatformLabel,

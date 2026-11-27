@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   tierGamesFromCsv, videosFromCsv, attachVideos, steamAppIdFor, looseKey, isoDate, videoType,
-  firstBracket, bracketCandidates, buildPayload, loadTier, statsView,
+  firstBracket, bracketCandidates, buildPayload, loadTier, statsView, coverAppIdFor,
 } from "../functions/api/tier.js";
 
 const TIER = [
@@ -49,6 +49,33 @@ for (const g of games) {
   for (const k of Object.keys(g)) {
     assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url"].includes(k), k);
   }
+}
+
+// cover_steam_appid: a cover for games played off Steam, without a Steam store link.
+{
+  const withCover = tierGamesFromCsv([
+    "year,name_zh,name_en,tier,notes_en,notes_zh,store_game_id,platform,cover_steam_appid",
+    "2026,暗黑破壞神 4,Diablo IV,B,,好玩,Fen,Battle.net,2344520",
+    "2026,控制,Control,A,,讚,PPSA34547_00,PS5, 870780 ",
+    "2026,陰森,The Forest,A,,黑,242760,Steam,999999",
+    "2025,寶可夢,Pokemon UNITE,B,,亂,,Nintendo Switch,",
+    "2025,壞,Bad Cover,B,,x,CUSA1,PS4,abc123",
+    "2025,壞2,Bad Cover 2,B,,x,CUSA1,PS4,https://evil.example/1.jpg",
+    "2025,大革命,Assassin's Creed Unity,B,,x,720,Ubisoft Connect,289650",
+  ].join("\n"));
+  const c = Object.fromEntries(withCover.map((g) => [g.name_en, g]));
+  assert.equal(c["Diablo IV"].steam_appid, "2344520");
+  assert.equal(c["Diablo IV"].store_url, undefined, "fallback covers never add a Steam store link");
+  assert.equal(c["Control"].steam_appid, "870780");
+  assert.equal(c["The Forest"].steam_appid, "242760", "the Steam-platform id wins over the fallback");
+  assert.equal(c["The Forest"].store_url, "https://store.steampowered.com/app/242760/");
+  assert.equal(c["Pokemon UNITE"].steam_appid, undefined, "blank fallback stays a text card");
+  assert.equal(c["Bad Cover"].steam_appid, undefined);
+  assert.equal(c["Bad Cover 2"].steam_appid, undefined);
+  assert.equal(c["Assassin's Creed Unity"].steam_appid, "289650");
+  assert.equal(coverAppIdFor(" 123 "), "123");
+  assert.equal(coverAppIdFor("12.5"), "");
+  assert.equal(coverAppIdFor(""), "");
 }
 
 // helpers

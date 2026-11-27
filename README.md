@@ -12,8 +12,8 @@ Static site for playwhaly.com, hosted on Cloudflare Pages.
 
 - `/` home: latest video, intro, game-name banner, destination cards, recent videos (9, skipping the newest because it is already in the hero), socials, Hello game devs.
 - `/free` limited-time free games from official stores only. Claim buttons never point at GamerPower.
-- `/backlog` the public game list, shown 50 at a time, with compact cards on a narrow screen. Table columns: 遊戲名稱, 平台, 類型, 狀態. An optional column with no data in the list is dropped.
-- `/tier` Whaly's rated games by year (S to D), from `/api/tier`. Year pills, `?year=` (cleaned with `replaceState`), Chinese name first, `notes_zh` first and the English note as written when there is one (never auto-translated), Steam covers only for numeric ids on Steam rows, and links to his own uploads matched by the first `《》` in the title.
+- `/backlog` the public game list (PC, PS4, PS5 and Nintendo Switch; at most 4 genres per game), shown 50 at a time, with compact cards on a narrow screen. Table columns: 遊戲名稱, 平台, 類型, 狀態. An optional column with no data in the list is dropped.
+- `/tier` Whaly's rated games by year (S to D), from `/api/tier`. Year pills, `?year=` (cleaned with `replaceState`), Chinese name first, `notes_zh` first and the English note as written when there is one (never auto-translated), Steam covers for numeric ids on Steam rows, otherwise from the hand-checked `cover_steam_appid` column (cover only, no Steam store link), and links to his own uploads matched by the first `《》` in the title.
 - `/spin` a wheel that picks from unplayed games in that list.
 - `/terms` and `/privacy`.
 - `/robots.txt`, `/llms.txt` and `/sitemap.xml`.
@@ -43,7 +43,7 @@ Twitch values and the backlog CSV belong under Variables and Secrets, Production
 | `TWITCH_CLIENT_SECRET` | Secret | Same application. Add it in the dashboard only, never in the repo |
 | `TWITCH_CHANNEL` | Plain text, optional | Defaults to `playwhaly` |
 | `BACKLOG_CSV_URL` | Secret or plain text | Published Google Sheet "Public" tab CSV URL (`https://docs.google.com/spreadsheets/d/…/pub?gid=…&single=true&output=csv` or the export equivalent). Only `docs.google.com`, `spreadsheets.google.com` and `docs.googleusercontent.com` are allowed. If this is unset or the sheet cannot be reached, `/backlog` and `/spin` show a friendly empty state. |
-| `TIER_CSV_URL` | Plain text | Published `TierPublic` tab CSV (year, name_zh, name_en, tier, notes_en, notes_zh, store_game_id, platform). Same Google host allowlist. If unset or unreachable, `/tier` shows a friendly empty state. |
+| `TIER_CSV_URL` | Plain text | Published `TierPublic` tab CSV (year, name_zh, name_en, tier, notes_en, notes_zh, store_game_id, platform, cover_steam_appid). Same Google host allowlist. If unset or unreachable, `/tier` shows a friendly empty state. |
 | `UPLOADED_CSV_URL` | Plain text, optional | Published `UploadedPublic` tab CSV (Title, Date, Duration, Type, URL). Only YouTube rows are used. If unset or down, `/tier` still shows, without video links. |
 | `FREE_GAMES_HISTORY` | KV namespace binding | Optional. Remembers distinct free games already listed, so `/free` can show 「已整理 N 款免費遊戲」, and keeps recently ended titles for a few weeks. If this binding is missing, the counter and the 「最近結束」 block are hidden. Do not invent a number. A leftover name `FREE_GAMES_SEEN` is also accepted. |
 

@@ -92,10 +92,23 @@ const clamped = ctx.PWGames.pageSlice([1, 2, 3], 99, 50);
 assert.equal(clamped.page, 1);
 assert.deepEqual(clamped.items, [1, 2, 3]);
 assert.equal(ctx.PWGames.ALLOWED_PLATFORMS.join("|"),
-  "PC (Windows)|Sony PlayStation 4|Sony PlayStation 5");
+  "PC (Windows)|Sony PlayStation 4|Sony PlayStation 5|Nintendo Switch");
 assert.equal(ctx.PWGames.hasAllowedPlatform("PC · Switch"), true);
 assert.equal(ctx.PWGames.hasAllowedPlatform("PS5"), true);
-assert.equal(ctx.PWGames.hasAllowedPlatform("Switch · Xbox"), false);
+assert.equal(ctx.PWGames.hasAllowedPlatform("Xbox"), false);
+// Nintendo Switch games show on /backlog and get their own filter entry.
+assert.equal(ctx.PWGames.hasAllowedPlatform("Nintendo Switch"), true);
+assert.equal(ctx.PWGames.hasAllowedPlatform("Switch · Xbox"), true);
+assert.equal(ctx.PWGames.hasPlatform("Nintendo Switch", "Nintendo Switch"), true);
+assert.equal(ctx.PWGames.hasPlatform("Nintendo Switch", "PC (Windows)"), false);
+assert.equal(ctx.PWGames.hasPlatform("Steam", "Nintendo Switch"), false);
+assert.equal(ctx.PWGames.allowedPlatformLabel("Nintendo Switch"), "Nintendo Switch");
+// At most 4 genres are shown or offered as filters; the sheet may hold more.
+assert.equal(ctx.PWGames.MAX_GENRES, 4);
+assert.deepEqual([...ctx.PWGames.splitGenres("Adventure, Indie, Puzzle, Shooter, Strategy, Tactical")],
+  ["Adventure", "Indie", "Puzzle", "Shooter"]);
+assert.equal(ctx.PWGames.genresLabel("Adventure, Indie, Puzzle, Shooter, Strategy"), "冒險、獨立、解謎、射擊");
+assert.equal(ctx.PWGames.genresLabel("Adventure"), "冒險");
 assert.equal(ctx.PWGames.hasAllowedPlatform(""), false);
 // The live Public tab names PC games by store; those are PC games, not hidden ones.
 for (const store of ["Steam", "GOG", "Epic", "Amazon", "Ubisoft Connect", "Battle.net"]) {

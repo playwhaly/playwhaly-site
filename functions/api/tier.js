@@ -45,6 +45,12 @@ export function steamAppIdFor(storeGameId, platform) {
   return id;
 }
 
+// cover_steam_appid is a hand-checked Steam app id for the same game; anything but plain digits is ignored.
+export function coverAppIdFor(raw) {
+  const id = clean(raw);
+  return /^\d{1,9}$/.test(id) ? id : "";
+}
+
 export function tierGamesFromCsv(text) {
   const out = [];
   for (const r of rowsAsObjects(text)) {
@@ -64,6 +70,11 @@ export function tierGamesFromCsv(text) {
     if (appid) {
       g.steam_appid = appid;
       g.store_url = "https://store.steampowered.com/app/" + appid + "/";
+    } else {
+      // Played on another store or console: show the cover of the same game on Steam, when the sheet's
+      // cover_steam_appid column names one. Cover only, so the card never claims he played it on Steam.
+      const cover = coverAppIdFor(r.cover_steam_appid);
+      if (cover) g.steam_appid = cover;
     }
     out.push(g);
   }

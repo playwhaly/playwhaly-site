@@ -20,7 +20,7 @@
 
   function matchesSpinnerPlatform(rawPlatforms, selectedValue) {
     if (!selectedValue) return U.hasAllowedPlatform(rawPlatforms);
-    var indexByValue = { pc: 0, ps4: 1, ps5: 2 };
+    var indexByValue = { pc: 0, ps4: 1, ps5: 2, switch: 3 };
     var index = indexByValue[selectedValue];
     if (index == null) return false;
     return U.hasPlatform(rawPlatforms, U.ALLOWED_PLATFORMS[index]);
@@ -35,7 +35,7 @@
     platform.appendChild(all);
     U.ALLOWED_PLATFORMS.forEach(function (label, index) {
       var option = document.createElement("option");
-      option.value = ["pc", "ps4", "ps5"][index];
+      option.value = ["pc", "ps4", "ps5", "switch"][index];
       option.textContent = label;
       platform.appendChild(option);
     });
