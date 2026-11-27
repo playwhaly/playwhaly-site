@@ -7,6 +7,7 @@ playwhaly.com is 威利 Whaly's public gaming site. It is a calm place for video
 - /  Home, with the latest video, a short intro, destination cards, recent videos, and social links
 - /free  Limited time free games, plus a collapsed list of free in-game items and DLC. Claim links go only to official stores or official game sites
 - /backlog  The public game list, with search and filters
+- /tier  Whaly's own yearly game tiers (S to D), with short reviews and links to his videos
 - /spin  A wheel that picks one unplayed game
 - /terms  Terms of Service
 - /privacy  Privacy Policy
