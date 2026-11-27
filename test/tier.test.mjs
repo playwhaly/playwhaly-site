@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import {
   tierGamesFromCsv, videosFromCsv, attachVideos, steamAppIdFor, looseKey, isoDate, videoType,
   firstBracket, bracketCandidates, buildPayload, loadTier, statsView, coverAppIdFor, coverUrlFor,
+  storeUrlFor, storeLabelFor,
 } from "../functions/api/tier.js";
 
 const TIER = [
@@ -40,6 +41,7 @@ assert.equal(games.length, 8, "bad year / tier / blank name rows are skipped");
 const by = Object.fromEntries(games.map((g) => [g.name_en, g]));
 assert.equal(by["The Forest"].steam_appid, "242760");
 assert.equal(by["The Forest"].store_url, "https://store.steampowered.com/app/242760/");
+assert.equal(by["The Forest"].store_label, "在 Steam 看看");
 assert.equal(by["Red Dead Redemption"].steam_appid, undefined, "PS ids are never Steam");
 assert.equal(by["Assassin's Creed Unity"].steam_appid, undefined, "numeric non-Steam ids are never Steam");
 assert.equal(by["Mycelium: The Silent Contract"].name_zh, "", "no invented Chinese name");
@@ -47,7 +49,7 @@ assert.equal(by["New Popup Game"].notes_en, "English only review");
 assert.equal(by["New Popup Game"].notes_zh, "", "no auto-translation");
 for (const g of games) {
   for (const k of Object.keys(g)) {
-    assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url", "cover"].includes(k), k);
+    assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url", "store_label", "cover"].includes(k), k);
   }
 }
 
@@ -65,7 +67,8 @@ for (const g of games) {
   ].join("\n"));
   const c = Object.fromEntries(withCover.map((g) => [g.name_en, g]));
   assert.equal(c["Diablo IV"].steam_appid, "2344520");
-  assert.ok(c["Diablo IV"].store_url.startsWith("https://store.steampowered.com/app/"), "cover_steam_appid games link to their Steam page");
+  assert.equal(c["Diablo IV"].store_url, "https://store.steampowered.com/app/2344520/", "cover_steam_appid games fall back to their Steam page");
+  assert.equal(c["Diablo IV"].store_label, "在 Steam 看看");
   assert.equal(c["Control"].steam_appid, "870780");
   assert.equal(c["The Forest"].steam_appid, "242760", "the Steam-platform id wins over the fallback");
   assert.equal(c["The Forest"].store_url, "https://store.steampowered.com/app/242760/");
@@ -82,6 +85,7 @@ for (const g of games) {
 assert.equal(steamAppIdFor("123", ""), "123");
 assert.equal(steamAppIdFor("123", "GOG"), "");
 assert.equal(steamAppIdFor("CUSA1", "Steam"), "");
+assert.equal(steamAppIdFor("1724969043", "Steam"), "", "10-digit GOG-style ids are not Steam app ids");
 assert.equal(looseKey("Species: Unknown"), looseKey("Species Unknown"));
 assert.equal(looseKey("R.E.P.O."), looseKey("REPO"));
 assert.equal(isoDate("21-Dec-2020"), "2020-12-21");
@@ -190,3 +194,63 @@ console.log("all tier tests passed");
   assert.equal(coverUrlFor("https://image.api.playstation.com/a b.png"), "");
 }
 
+
+// store_url: official store page of the platform played, allowlisted hosts, label from the host.
+{
+  const ps = "https://store.playstation.com/zh-hant-tw/product/HP9000-PPSA01287_00-RETURNALGAME0001";
+  const nin = "https://www.nintendo.com/us/store/products/animal-crossing-new-horizons-switch/";
+  const epic = "https://store.epicgames.com/zh-Hant/p/among-us";
+  const gog = "https://www.gog.com/en/game/doom_2016";
+  const ubi = "https://store.ubisoft.com/us/assassins-creed-unity/56c4948881105a1e3c8b4567.html";
+  const xbox = "https://www.xbox.com/zh-tw/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj";
+  const ea = "https://www.ea.com/games/ufc/ufc-6";
+  const games = tierGamesFromCsv([
+    "year,name_zh,name_en,tier,notes_en,notes_zh,store_game_id,platform,cover_steam_appid,cover_url,store_url",
+    "2021,回歸,Returnal,S,,讚,PPSA01287_00,PS5,1649240,," + ps,
+    "2021,動森,Animal Crossing: New Horizons,A,,島,,Nintendo Switch,,," + nin,
+    "2019,太空狼人殺,Among Us,B,,好玩,963137e4c29d4c79a81323b8fab03a40,Epic,945360,," + epic,
+    "2018,毀滅戰士,Doom,A,,讚,1390579243,GOG,379720,," + gog,
+    "2015,大革命,Assassin's Creed Unity,B,,x,720,Ubisoft Connect,289650,," + ubi,
+    "2021,當個創世神,Minecraft,A,,沙盒,,,,," + xbox,
+    "2026,UFC 6,EA Sports UFC 6,C,,生涯,PPSA23566_00,PS5,,," + ea,
+    "2026,暗黑破壞神 4,Diablo IV,B,,打寶,Fen,Battle.net,2344520,,",
+    "2026,陰森,The Forest,A,,黑,242760,Steam,,,https://store.playstation.com/zh-hant-tw/product/FAKE",
+    "2019,古墓奇兵,Tomb Raider: Game of the Year Edition,B,,x,1724969043,Steam,,,",
+    "2025,壞1,Http Store,B,,x,CUSA1,PS4,,,http://store.playstation.com/product/x",
+    "2025,壞2,Evil Store,B,,x,CUSA1,PS4,,,https://evil.example/x",
+    "2025,壞3,Lookalike Store,B,,x,CUSA1,PS4,,,https://store.playstation.com.evil.example/x",
+    "2025,壞4,Userinfo Store,B,,x,CUSA1,PS4,,,https://a@store.playstation.com/product/x",
+    "2025,壞5,Port Store,B,,x,CUSA1,PS4,,,https://store.playstation.com:8443/product/x",
+  ].join("\n"));
+  const c = Object.fromEntries(games.map((g) => [g.name_en, g]));
+  assert.equal(c["Returnal"].store_url, ps);
+  assert.equal(c["Returnal"].store_label, "在 PlayStation Store 看看");
+  assert.equal(c["Returnal"].steam_appid, "1649240", "a platform store link keeps the Steam cover");
+  assert.equal(c["Animal Crossing: New Horizons"].store_url, nin);
+  assert.equal(c["Animal Crossing: New Horizons"].store_label, "在 Nintendo eShop 看看");
+  assert.equal(c["Among Us"].store_label, "在 Epic 看看");
+  assert.equal(c["Doom"].store_label, "在 GOG 看看");
+  assert.equal(c["Assassin's Creed Unity"].store_label, "在 Ubisoft Store 看看");
+  assert.equal(c["Minecraft"].store_label, "在 Microsoft Store 看看");
+  assert.equal(c["EA Sports UFC 6"].store_label, "在 EA 看看");
+  assert.equal(c["Diablo IV"].store_url, "https://store.steampowered.com/app/2344520/", "no official Battle.net host: fall back to Steam");
+  assert.equal(c["Diablo IV"].store_label, "在 Steam 看看");
+  assert.equal(c["The Forest"].store_url, "https://store.playstation.com/zh-hant-tw/product/FAKE");
+  assert.equal(c["The Forest"].store_label, "在 PlayStation Store 看看", "a valid sheet store_url wins over the Steam-platform id");
+  assert.equal(c["The Forest"].steam_appid, "242760");
+  assert.equal(c["Tomb Raider: Game of the Year Edition"].steam_appid, undefined, "a 10-digit id is not a Steam app id");
+  assert.equal(c["Tomb Raider: Game of the Year Edition"].store_url, undefined);
+  for (const n of ["Http Store", "Evil Store", "Lookalike Store", "Userinfo Store", "Port Store"]) {
+    assert.equal(c[n].store_url, undefined, n);
+    assert.equal(c[n].store_label, undefined, n);
+  }
+  assert.equal(storeUrlFor(""), "");
+  assert.equal(storeUrlFor("https://WWW.GOG.COM/en/game/doom_2016"), "https://www.gog.com/en/game/doom_2016");
+  assert.equal(storeUrlFor("https://gog.com/en/game/doom_2016"), "https://www.gog.com/en/game/doom_2016");
+  assert.equal(storeLabelFor("https://store.epicgames.com/zh-Hant/p/among-us"), "在 Epic 看看");
+  assert.equal(storeUrlFor("https://www.ubisoft.com/game/x"), "", "www.ubisoft.com is not the store host");
+}
+
+const tierJs = readFileSync(new URL("../public/tier.js", import.meta.url), "utf8");
+assert.match(tierJs, /store_label/);
+assert.match(tierJs, /在 Steam 看看/);

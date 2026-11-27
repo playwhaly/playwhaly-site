@@ -60,7 +60,8 @@
         esc(first.title) + '">▶ ' + esc(KIND_LABEL[first.type] || "影片") + "</a>");
     }
     if (g.store_url) {
-      parts.push('<a class="tier-link" href="' + esc(g.store_url) + '" target="_blank" rel="noopener">在 Steam 看看</a>');
+      parts.push('<a class="tier-link" href="' + esc(g.store_url) + '" target="_blank" rel="noopener">' +
+        esc(g.store_label || "在 Steam 看看") + "</a>");
     }
     var more = "";
     if (vids.length > 1) {

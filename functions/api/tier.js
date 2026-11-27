@@ -35,11 +35,12 @@ function rowsAsObjects(text) {
   });
 }
 
-// Steam only when the id is all digits AND the row's store is Steam. A numeric GOG, Ubisoft or PS id
-// is not a Steam app id and would show some other game's cover.
+// Steam only when the id is 1–9 digits AND the row's store is Steam. A numeric GOG, Ubisoft or
+// PlayStation id is not a Steam app id and would show some other game's cover. 10-digit ids
+// (common GOG product ids) are also rejected, even if the platform cell says Steam.
 export function steamAppIdFor(storeGameId, platform) {
   const id = clean(storeGameId);
-  if (!/^\d+$/.test(id)) return "";
+  if (!/^\d{1,9}$/.test(id)) return "";
   const p = clean(platform).toLowerCase();
   if (p && !/\bsteam\b/.test(p)) return "";
   return id;
@@ -73,9 +74,52 @@ export function coverUrlFor(raw) {
   if (!s || s.length > 500 || /[\s"'<>\\]/.test(s)) return "";
   let u;
   try { u = new URL(s); } catch { return ""; }
-  if (u.protocol !== "https:" || u.username || u.password || u.port) return "";
+  if (u.protocol !== "https:" || u.hostname === "" || u.username || u.password || u.port) return "";
   if (!COVER_HOSTS.includes(u.hostname.toLowerCase())) return "";
   return u.href;
+}
+
+// store_url: a hand-checked official store page for the platform the game was played on.
+// Only https, only these official store hosts, no credentials, no odd ports. Anything else is dropped.
+export const STORE_HOSTS = {
+  "store.playstation.com": "在 PlayStation Store 看看",
+  "www.nintendo.com": "在 Nintendo eShop 看看",
+  "ec.nintendo.com": "在 Nintendo eShop 看看",
+  "store.epicgames.com": "在 Epic 看看",
+  "www.gog.com": "在 GOG 看看",
+  "store.ubisoft.com": "在 Ubisoft Store 看看",
+  "www.xbox.com": "在 Microsoft Store 看看",
+  "apps.microsoft.com": "在 Microsoft Store 看看",
+  "www.ea.com": "在 EA 看看",
+  "store.steampowered.com": "在 Steam 看看",
+};
+
+export function storeUrlFor(raw) {
+  const s = clean(raw);
+  if (!s || s.length > 500 || /[\s"'<>\\]/.test(s)) return "";
+  let u;
+  try { u = new URL(s); } catch { return ""; }
+  if (u.protocol !== "https:" || u.username || u.password || u.port) return "";
+  const host = u.hostname.toLowerCase();
+  // Accept a bare gog.com and normalise it to www.gog.com, which is the official host.
+  if (host === "gog.com") {
+    u.hostname = "www.gog.com";
+  }
+  if (!Object.prototype.hasOwnProperty.call(STORE_HOSTS, u.hostname.toLowerCase())) return "";
+  return u.href;
+}
+
+export function storeLabelFor(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return STORE_HOSTS[host] || "";
+  } catch {
+    return "";
+  }
+}
+
+function steamStoreUrl(appid) {
+  return "https://store.steampowered.com/app/" + appid + "/";
 }
 
 export function tierGamesFromCsv(text) {
@@ -96,19 +140,30 @@ export function tierGamesFromCsv(text) {
     const appid = steamAppIdFor(r.store_game_id, r.platform);
     if (appid) {
       g.steam_appid = appid;
-      g.store_url = "https://store.steampowered.com/app/" + appid + "/";
     } else {
       // Played on another store or console: show the cover of the same game on Steam, when the sheet's
-      // cover_steam_appid column names one, plus a link to that game's Steam page (owner's choice, 27 Nov 2026).
+      // cover_steam_appid column names one.
       const cover = coverAppIdFor(r.cover_steam_appid);
-      if (cover) {
-        g.steam_appid = cover;
-        g.store_url = "https://store.steampowered.com/app/" + cover + "/";
-      } else {
+      if (cover) g.steam_appid = cover;
+      else {
         // Otherwise an official image URL from the sheet's cover_url column, when its host is allowed.
         const url = coverUrlFor(r.cover_url);
         if (url) g.cover = url;
       }
+    }
+    // Official store button: prefer a hand-checked store_url for the platform actually played.
+    // If that is missing or not on an allowed host, fall back to the Steam page when we have an app id
+    // (the Steam-platform id, or cover_steam_appid). Owner's choice, 27 Nov 2026.
+    const official = storeUrlFor(r.store_url);
+    if (official) {
+      const label = storeLabelFor(official);
+      if (label) {
+        g.store_url = official;
+        g.store_label = label;
+      }
+    } else if (g.steam_appid) {
+      g.store_url = steamStoreUrl(g.steam_appid);
+      g.store_label = "在 Steam 看看";
     }
     out.push(g);
   }
