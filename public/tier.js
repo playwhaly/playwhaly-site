@@ -33,7 +33,7 @@
   }
 
   function coverHtml(g) {
-    if (!g.steam_appid) return "";
+    if (!g.steam_appid && !g.cover) return "";
     return '<span class="tier-cover"><img src="' + esc(U.coverSrc(g)) + '" data-fb="' + esc(U.coverFallback(g)) +
       '" onerror="if(this.dataset.fb){this.src=this.dataset.fb;this.dataset.fb=\'\'}else{this.parentNode.remove()}"' +
       ' width="460" height="215" alt="" loading="lazy" decoding="async"></span>';
@@ -80,7 +80,7 @@
     var names = zh
       ? '<span class="gz">' + esc(zh) + '</span><span class="ge" lang="en">' + esc(en) + "</span>"
       : '<span class="gz" lang="en">' + esc(en) + "</span>";
-    return '<article class="tier-card' + (g.steam_appid ? " has-cover" : "") + '">' +
+    return '<article class="tier-card' + (g.steam_appid || g.cover ? " has-cover" : "") + '">' +
       coverHtml(g) +
       '<div class="tier-body"><h3 class="tier-name">' + names + "</h3>" +
       notesHtml(g) + linksHtml(g) + "</div>" +

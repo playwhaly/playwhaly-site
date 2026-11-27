@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   tierGamesFromCsv, videosFromCsv, attachVideos, steamAppIdFor, looseKey, isoDate, videoType,
-  firstBracket, bracketCandidates, buildPayload, loadTier, statsView, coverAppIdFor,
+  firstBracket, bracketCandidates, buildPayload, loadTier, statsView, coverAppIdFor, coverUrlFor,
 } from "../functions/api/tier.js";
 
 const TIER = [
@@ -47,7 +47,7 @@ assert.equal(by["New Popup Game"].notes_en, "English only review");
 assert.equal(by["New Popup Game"].notes_zh, "", "no auto-translation");
 for (const g of games) {
   for (const k of Object.keys(g)) {
-    assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url"].includes(k), k);
+    assert.ok(["year", "name_zh", "name_en", "tier", "notes_zh", "notes_en", "steam_appid", "store_url", "cover"].includes(k), k);
   }
 }
 
@@ -154,3 +154,39 @@ const blob = ["tier.html", "tier.js"].map((f) => readFileSync(new URL("../public
 assert.equal(/kumimo|tailnet|tailscale|Weng|\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b|[A-Z]:\\\\/i.test(blob), false, "no career or private host text");
 
 console.log("all tier tests passed");
+
+// cover_url: an official image for games with no Steam cover, allowlisted hosts and https only.
+{
+  const nin = "https://assets.nintendo.com/image/upload/c_fill,w_1200/q_auto/f_auto/store/software/switch/70010000043292/91e3";
+  const ps = "https://image.api.playstation.com/vulcan/img/rnd/202011/0713/WSZqsrnejjt85wYmUqeBQvMQ.png?w=960";
+  const games = tierGamesFromCsv([
+    "year,name_zh,name_en,tier,notes_en,notes_zh,store_game_id,platform,cover_steam_appid,cover_url",
+    "2020,血源詛咒,Bloodborne,S,,讚,CUSA00207_00,PS4,," + ps,
+    "2021,寶可夢大集結,Pokémon UNITE,B,,亂,,Nintendo Switch,,\"" + nin + "\"",
+    "2026,暗黑破壞神 4,Diablo IV,B,,好玩,Fen,Battle.net,2344520," + ps,
+    "2026,陰森,The Forest,A,,黑,242760,Steam,," + ps,
+    "2025,壞1,Http Cover,B,,x,CUSA1,PS4,,http://image.api.playstation.com/x.png",
+    "2025,壞2,Evil Host,B,,x,CUSA1,PS4,,https://evil.example/x.png",
+    "2025,壞3,Lookalike Host,B,,x,CUSA1,PS4,,https://image.api.playstation.com.evil.example/x.png",
+    "2025,壞4,Script Cover,B,,x,CUSA1,PS4,,javascript:alert(1)",
+    "2025,壞5,Userinfo Cover,B,,x,CUSA1,PS4,,https://a@image.api.playstation.com/x.png",
+    "2025,壞6,Quote Cover,B,,x,CUSA1,PS4,,\"https://image.api.playstation.com/x.png\"\"onerror=alert(1)\"",
+    "2025,壞7,Port Cover,B,,x,CUSA1,PS4,,https://image.api.playstation.com:8443/x.png",
+  ].join("\n"));
+  const c = Object.fromEntries(games.map((g) => [g.name_en, g]));
+  assert.equal(c["Bloodborne"].cover, ps);
+  assert.equal(c["Bloodborne"].steam_appid, undefined);
+  assert.equal(c["Bloodborne"].store_url, undefined, "a cover_url never adds a store link");
+  assert.equal(c["Pokémon UNITE"].cover, nin, "a quoted URL with commas survives the CSV");
+  assert.equal(c["Diablo IV"].steam_appid, "2344520", "cover_steam_appid wins over cover_url");
+  assert.equal(c["Diablo IV"].cover, undefined);
+  assert.equal(c["The Forest"].steam_appid, "242760", "a Steam row keeps its own cover");
+  assert.equal(c["The Forest"].cover, undefined);
+  for (const n of ["Http Cover", "Evil Host", "Lookalike Host", "Script Cover", "Userinfo Cover", "Quote Cover", "Port Cover"]) {
+    assert.equal(c[n].cover, undefined, n);
+  }
+  assert.equal(coverUrlFor(""), "");
+  assert.equal(coverUrlFor("https://IMAGE.API.PLAYSTATION.COM/a.png"), "https://image.api.playstation.com/a.png");
+  assert.equal(coverUrlFor("https://image.api.playstation.com/a b.png"), "");
+}
+

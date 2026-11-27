@@ -51,6 +51,33 @@ export function coverAppIdFor(raw) {
   return /^\d{1,9}$/.test(id) ? id : "";
 }
 
+// cover_url: a hand-checked official cover or key art for games with no Steam cover. Only https, only on
+// these official store and publisher image hosts, no credentials, no odd ports. Anything else is dropped.
+export const COVER_HOSTS = [
+  "image.api.playstation.com",
+  "assets.nintendo.com",
+  "store-images.s-microsoft.com",
+  "cdn1.epicgames.com",
+  "cdn2.unrealengine.com",
+  "drop-assets.ea.com",
+  "media.contentapi.ea.com",
+  "shared.akamai.steamstatic.com",
+  "shared.cloudflare.steamstatic.com",
+  "cdn.akamai.steamstatic.com",
+  "cdn.cloudflare.steamstatic.com",
+  "www.evildeadthegame.com",
+];
+
+export function coverUrlFor(raw) {
+  const s = clean(raw);
+  if (!s || s.length > 500 || /[\s"'<>\\]/.test(s)) return "";
+  let u;
+  try { u = new URL(s); } catch { return ""; }
+  if (u.protocol !== "https:" || u.username || u.password || u.port) return "";
+  if (!COVER_HOSTS.includes(u.hostname.toLowerCase())) return "";
+  return u.href;
+}
+
 export function tierGamesFromCsv(text) {
   const out = [];
   for (const r of rowsAsObjects(text)) {
@@ -75,6 +102,11 @@ export function tierGamesFromCsv(text) {
       // cover_steam_appid column names one. Cover only, so the card never claims he played it on Steam.
       const cover = coverAppIdFor(r.cover_steam_appid);
       if (cover) g.steam_appid = cover;
+      else {
+        // Otherwise an official image URL from the sheet's cover_url column, when its host is allowed.
+        const url = coverUrlFor(r.cover_url);
+        if (url) g.cover = url;
+      }
     }
     out.push(g);
   }
