@@ -109,6 +109,23 @@ assert.deepEqual([...ctx.PWGames.splitGenres("Adventure, Indie, Puzzle, Shooter,
   ["Adventure", "Indie", "Puzzle", "Shooter"]);
 assert.equal(ctx.PWGames.genresLabel("Adventure, Indie, Puzzle, Shooter, Strategy"), "冒險、獨立、解謎、射擊");
 assert.equal(ctx.PWGames.genresLabel("Adventure"), "冒險");
+assert.equal(ctx.PWGames.genresLabel("Hack and slash/Beat 'em up, Role-playing (RPG)"), "砍殺動作、清版動作、角色扮演");
+assert.equal(ctx.PWGames.genresLabel("Quiz/Trivia"), "問答");
+assert.equal(ctx.PWGames.genresLabel("MOBA"), "多人對戰");
+assert.equal(ctx.PWGames.genresLabel("Casual"), "休閒");
+// Every genre tag in the current backlog (after splitGenres) must map to zh-TW with no Latin letters.
+const LIVE_GENRE_TAGS = [
+  "Adventure", "Indie", "Role-playing (RPG)", "RPG", "Strategy", "Simulator", "Puzzle",
+  "Shooter", "Platform", "Arcade", "Hack and slash", "Beat 'em up", "Hack and slash/Beat 'em up",
+  "Turn-based strategy (TBS)", "Tactical", "Point-and-click", "Fighting", "Sport", "Sports",
+  "Real Time Strategy (RTS)", "Racing", "Card & Board Game", "Visual Novel", "Music",
+  "Pinball", "Quiz/Trivia", "Quiz", "Trivia", "MOBA", "Casual",
+];
+for (const tag of LIVE_GENRE_TAGS) {
+  const zh = ctx.PWGames.genreZh(tag);
+  assert.notEqual(zh, tag, tag + " must not fall back to English");
+  assert.equal(/[A-Za-z]/.test(zh), false, tag + " → " + zh);
+}
 assert.equal(ctx.PWGames.hasAllowedPlatform(""), false);
 // The live Public tab names PC games by store; those are PC games, not hidden ones.
 for (const store of ["Steam", "GOG", "Epic", "Amazon", "Ubisoft Connect", "Battle.net"]) {

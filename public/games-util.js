@@ -47,7 +47,12 @@
     "Music": "音樂",
     "Pinball": "彈珠台",
     "Quiz/Trivia": "問答",
-    "MOBA": "MOBA"
+    "Quiz": "問答",
+    "Trivia": "問答",
+    "Hack and slash": "砍殺動作",
+    "Beat 'em up": "清版動作",
+    "MOBA": "多人對戰",
+    "Casual": "休閒"
   };
 
   var SHORT_ZH = {
@@ -67,7 +72,16 @@
   }
   function genreZh(en) { return GENRE_ZH[en] || en; }
   function genresLabel(raw) {
-    return splitGenres(raw).map(genreZh).join("、") || "—";
+    var out = [];
+    var seen = {};
+    splitGenres(raw).forEach(function (en) {
+      var zh = genreZh(en);
+      if (!seen[zh]) {
+        seen[zh] = true;
+        out.push(zh);
+      }
+    });
+    return out.join("、") || "—";
   }
   function platforms(raw) {
     return String(raw || "").split(/[·•|,;/]+/).map(function (s) { return s.trim(); }).filter(Boolean);

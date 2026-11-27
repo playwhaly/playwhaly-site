@@ -308,3 +308,21 @@ assert.match(utilJs, /if \(g && g\.cover\) return g\.cover/, "the client prefers
 assert.match(tierJs, /store_status === "delisted"/);
 assert.match(tierJs, /is-delisted/);
 assert.match(tierJs, /已下架/);
+// /tier shows only the Chinese review. The original-language note is never rendered,
+// even when it is the only review in the sheet.
+assert.doesNotMatch(tierJs, /g\.notes_en/);
+assert.doesNotMatch(tierJs, /原文/);
+assert.doesNotMatch(tierJs, /is-orig/);
+assert.doesNotMatch(tierJs, /tier-note-lab/);
+assert.match(tierJs, /notes_zh/);
+{
+  const m = tierJs.match(/function notesHtml\(g\) \{[\s\S]*?\n  \}/);
+  assert.ok(m, "notesHtml is present");
+  const notesHtml = new Function("esc", m[0] + "; return notesHtml;")(function (s) { return String(s); });
+  assert.equal(notesHtml({ notes_zh: "洞裡黑到靠北", notes_en: "cave too dark" }), '<p class="tier-note">洞裡黑到靠北</p>');
+  assert.equal(notesHtml({ notes_zh: "", notes_en: "English only review" }), "", "English-only review is hidden");
+  assert.equal(notesHtml({ notes_zh: "   ", notes_en: "x" }), "", "blank Chinese review shows nothing");
+  const both = notesHtml({ notes_zh: "讚", notes_en: "nice" });
+  assert.equal(both.includes("nice"), false);
+  assert.equal(both.includes("原文"), false);
+}
