@@ -40,15 +40,10 @@
   }
 
   function notesHtml(g) {
+    // Only the Chinese review is shown. The original-language note is kept in the
+    // API data but never rendered; if notes_zh is empty, the card has no review.
     var zh = (g.notes_zh || "").trim();
-    var en = (g.notes_en || "").trim();
-    var out = "";
-    if (zh) out += '<p class="tier-note">' + esc(zh) + "</p>";
-    if (en) {
-      out += '<p class="tier-note' + (zh ? " is-orig" : "") + '" lang="en">' +
-        (zh ? '<span class="tier-note-lab">原文</span>' : "") + esc(en) + "</p>";
-    }
-    return out;
+    return zh ? '<p class="tier-note">' + esc(zh) + "</p>" : "";
   }
 
   function linksHtml(g) {
