@@ -65,7 +65,7 @@ for (const g of games) {
   ].join("\n"));
   const c = Object.fromEntries(withCover.map((g) => [g.name_en, g]));
   assert.equal(c["Diablo IV"].steam_appid, "2344520");
-  assert.equal(c["Diablo IV"].store_url, undefined, "fallback covers never add a Steam store link");
+  assert.ok(c["Diablo IV"].store_url.startsWith("https://store.steampowered.com/app/"), "cover_steam_appid games link to their Steam page");
   assert.equal(c["Control"].steam_appid, "870780");
   assert.equal(c["The Forest"].steam_appid, "242760", "the Steam-platform id wins over the fallback");
   assert.equal(c["The Forest"].store_url, "https://store.steampowered.com/app/242760/");

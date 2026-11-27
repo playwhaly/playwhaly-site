@@ -99,10 +99,12 @@ export function tierGamesFromCsv(text) {
       g.store_url = "https://store.steampowered.com/app/" + appid + "/";
     } else {
       // Played on another store or console: show the cover of the same game on Steam, when the sheet's
-      // cover_steam_appid column names one. Cover only, so the card never claims he played it on Steam.
+      // cover_steam_appid column names one, plus a link to that game's Steam page (owner's choice, 27 Nov 2026).
       const cover = coverAppIdFor(r.cover_steam_appid);
-      if (cover) g.steam_appid = cover;
-      else {
+      if (cover) {
+        g.steam_appid = cover;
+        g.store_url = "https://store.steampowered.com/app/" + cover + "/";
+      } else {
         // Otherwise an official image URL from the sheet's cover_url column, when its host is allowed.
         const url = coverUrlFor(r.cover_url);
         if (url) g.cover = url;
