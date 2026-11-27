@@ -9,7 +9,10 @@
   ];
 
   var PLATFORM_ALIASES = {
-    "pc (windows)": ["pc", "windows", "pc (windows)"],
+    // The Public tab lists PC games by store (Steam, GOG, Epic, ...), so those all count as PC.
+    "pc (windows)": ["pc", "windows", "pc (windows)", "steam", "gog", "epic", "epic games", "epic games store",
+      "amazon", "amazon games", "ubisoft connect", "uplay", "battle.net", "ea app", "origin", "itch.io",
+      "microsoft store", "xbox (pc)", "humble", "rockstar games launcher"],
     "sony playstation 4": ["ps4", "playstation 4", "sony playstation 4"],
     "sony playstation 5": ["ps5", "playstation 5", "sony playstation 5"]
   };

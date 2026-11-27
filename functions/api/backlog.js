@@ -24,6 +24,8 @@ const HEADER_MAP = {
   store_url: "store_url",
   store_label: "store_label",
   顯示名稱: "display_name",
+  English_name: "name_en",
+  english_name: "name_en",
   英文名: "name_en",
   英文名稱: "name_en",
   中文名: "name_zh",
@@ -213,7 +215,7 @@ export function summarize(games) {
   };
 }
 
-async function fetchAllowed(url, fetchImpl) {
+export async function fetchAllowed(url, fetchImpl, ua) {
   let current = url;
   for (let hop = 0; hop < 5; hop++) {
     if (!isAllowedCsvUrl(current)) throw new Error("blocked host");
@@ -224,7 +226,7 @@ async function fetchAllowed(url, fetchImpl) {
         method: "GET",
         redirect: "manual",
         signal: ctrl.signal,
-        headers: { "User-Agent": UA, Accept: "text/csv,text/plain,*/*" },
+        headers: { "User-Agent": ua || UA, Accept: "text/csv,text/plain,*/*" },
       });
       if (res.status >= 300 && res.status < 400) {
         const loc = res.headers.get("location");

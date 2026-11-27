@@ -97,6 +97,14 @@ assert.equal(ctx.PWGames.hasAllowedPlatform("PC · Switch"), true);
 assert.equal(ctx.PWGames.hasAllowedPlatform("PS5"), true);
 assert.equal(ctx.PWGames.hasAllowedPlatform("Switch · Xbox"), false);
 assert.equal(ctx.PWGames.hasAllowedPlatform(""), false);
+// The live Public tab names PC games by store; those are PC games, not hidden ones.
+for (const store of ["Steam", "GOG", "Epic", "Amazon", "Ubisoft Connect", "Battle.net"]) {
+  assert.equal(ctx.PWGames.hasAllowedPlatform(store), true, store);
+  assert.equal(ctx.PWGames.hasPlatform(store, "PC (Windows)"), true, store);
+  assert.equal(ctx.PWGames.hasPlatform(store, "Sony PlayStation 4"), false, store);
+}
+assert.equal(ctx.PWGames.hasAllowedPlatform("Sony PlayStation 3"), false);
+assert.equal(ctx.PWGames.hasAllowedPlatform("Sony PlayStation 3 | Sony PlayStation Vita"), false);
 assert.equal(ctx.PWGames.hasPlatform("PC · Sony PlayStation 4", "Sony PlayStation 4"), true);
 assert.equal(ctx.PWGames.hasPlatform("PS5", "Sony PlayStation 5"), true);
 assert.equal(ctx.PWGames.hasPlatform("Windows · Sony PlayStation 5", "Sony PlayStation 4"), false);
@@ -107,6 +115,29 @@ assert.match(ctx.PWGames.statusChip("放棄"), /status-dropped/);
 assert.equal(isAllowedCsvUrl("https://doc-0s-bc-sheets.googleusercontent.com/pub/abc/def?output=csv"), true);
 assert.equal(isAllowedCsvUrl("https://evil.example/csv"), false);
 assert.equal(isAllowedCsvUrl("https://evilgoogleusercontent.com/x.csv"), false);
+
+// The live Public tab header is "English name" (with a space); it must fill name_en.
+{
+  const live = gamesFromCsv([
+    "顯示名稱,中文名,English name,平台,狀態,完成日期,影片連結,類型,store_game_id",
+    "200% 混成汁 200% Mixed Juice!,200% 混成汁,200% Mixed Juice!,Steam,已完成,2021-09-29,,\"Adventure, Indie\",335190",
+    "瘟疫傳說：無罪 A Plague Tale: Innocence,瘟疫傳說：無罪,A Plague Tale: Innocence,GOG,已完成,2021-07-26,,Adventure,1901367087",
+  ].join("\n"));
+  assert.equal(live.length, 2);
+  assert.equal(live[0].name_en, "200% Mixed Juice!");
+  assert.equal(live[0].name_zh, "200% 混成汁");
+  assert.equal(live[0].platform, "Steam");
+  assert.equal(live[1].name_en, "A Plague Tale: Innocence");
+}
+
+// /backlog table: 遊戲名稱 | 平台 | 類型 | 狀態, no 發行 column.
+{
+  const html = readFileSync(new URL("../public/backlog.html", import.meta.url), "utf8");
+  const heads = [...html.matchAll(/<th class="col-([a-z]+)"[^>]*>([^<]+)<\/th>/g)].map((m) => m[2]);
+  assert.deepEqual(heads, ["遊戲名稱", "平台", "類型", "狀態"]);
+  assert.equal(html.includes("col-release"), false);
+  assert.equal(html.includes("發行"), false);
+}
 
 console.log("all backlog tests passed");
 
