@@ -61,7 +61,7 @@ assert.equal(games[1].completed_date, "2024-01-02");
 const PUBLIC_KEYS = new Set([
   "name_zh", "name_en", "display_name", "platform", "status",
   "genre", "release_date", "completed_date", "steam_appid",
-  "store_url", "store_label",
+  "store_url", "store_label", "added_date",
 ]);
 for (const game of games) {
   for (const key of Object.keys(game)) {
@@ -137,6 +137,41 @@ assert.equal(isAllowedCsvUrl("https://evilgoogleusercontent.com/x.csv"), false);
   assert.deepEqual(heads, ["遊戲名稱", "平台", "類型", "狀態"]);
   assert.equal(html.includes("col-release"), false);
   assert.equal(html.includes("發行"), false);
+}
+
+// 加入日期 → added_date (YYYY-MM-DD), parsed robustly; /backlog sorts newest added first.
+{
+  const { normalizeDate } = await import("../functions/api/backlog.js");
+  assert.equal(normalizeDate("2026-11-22"), "2026-11-22");
+  assert.equal(normalizeDate("2026/11/7"), "2026-11-07");
+  assert.equal(normalizeDate("2026-11-27 10:16:00"), "2026-11-27");
+  assert.equal(normalizeDate("22-Nov-2026"), "2026-11-22");
+  assert.equal(normalizeDate("22/11/2026"), "2026-11-22");
+  assert.equal(normalizeDate("46348"), "2026-11-22");
+  assert.equal(normalizeDate(""), "");
+  assert.equal(normalizeDate("soon"), "");
+  assert.equal(normalizeDate("2026-02-30"), "");
+
+  const withAdded = gamesFromCsv([
+    "顯示名稱,中文名,English name,平台,狀態,完成日期,影片連結,類型,store_game_id,加入日期",
+    "乙 B,乙,B,Steam,未玩,,,Indie,1,2026-11-22",
+    "甲 A,甲,A,Steam,未玩,,,Indie,2,2026-11-22",
+    "新 New,新,New,PS5,未玩,,,Indie,CUSA1,2026-11-27",
+    "無 None,無,None,GOG,未玩,,,Indie,3,",
+    "壞 Bad,壞,Bad,Epic,未玩,,,Indie,4,not a date",
+  ].join("\n"));
+  assert.equal(withAdded[0].added_date, "2026-11-22");
+  assert.equal("added_date" in withAdded[3], false);
+  assert.equal("added_date" in withAdded[4], false);
+  const sorted = ctx.PWGames.sortByAdded(withAdded).map((g) => g.name_en);
+  assert.equal(sorted[0], "New", "newest added first");
+  assert.deepEqual(sorted.slice(1, 3), ctx.PWGames.sortByAdded([withAdded[0], withAdded[1]]).map((g) => g.name_en), "ties by name, stable");
+  assert.deepEqual(sorted.slice(3).sort(), ["Bad", "None"], "blank dates last");
+  assert.equal(withAdded.map((g) => g.name_en).join(), "B,A,New,None,Bad", "sortByAdded does not mutate");
+
+  // No date column on the page.
+  const html = readFileSync(new URL("../public/backlog.html", import.meta.url), "utf8");
+  assert.equal(html.includes("加入日期"), false);
 }
 
 console.log("all backlog tests passed");

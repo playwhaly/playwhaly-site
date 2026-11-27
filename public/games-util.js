@@ -159,6 +159,21 @@
     if (id) return "https://store.steampowered.com/app/" + id + "/";
     return "";
   }
+  // Newest added first (added_date is YYYY-MM-DD), games with no date last, ties by name.
+  var nameCollator = (typeof Intl !== "undefined" && Intl.Collator) ? new Intl.Collator("zh-Hant", { numeric: true, sensitivity: "base" }) : null;
+  function sortByAdded(list) {
+    return (list || []).slice().sort(function (a, b) {
+      var da = /^\d{4}-\d{2}-\d{2}$/.test(a.added_date || "") ? a.added_date : "";
+      var db = /^\d{4}-\d{2}-\d{2}$/.test(b.added_date || "") ? b.added_date : "";
+      if (da !== db) {
+        if (!da) return 1;
+        if (!db) return -1;
+        return da < db ? 1 : -1;
+      }
+      var na = fullName(a), nb = fullName(b);
+      return nameCollator ? nameCollator.compare(na, nb) : (na < nb ? -1 : na > nb ? 1 : 0);
+    });
+  }
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -246,6 +261,7 @@
     coverSrc: coverSrc,
     coverFallback: coverFallback,
     storeUrl: storeUrl,
+    sortByAdded: sortByAdded,
     esc: esc,
     statusLabel: statusLabel,
     statusChip: statusChip,

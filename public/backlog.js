@@ -217,7 +217,7 @@
   U.loadBacklog().then(function (data) {
     payload = data;
     var sourceGames = (data && data.ok && Array.isArray(data.games)) ? data.games : [];
-    games = sourceGames.filter(function (g) { return U.hasAllowedPlatform(g.platform); });
+    games = U.sortByAdded(sourceGames.filter(function (g) { return U.hasAllowedPlatform(g.platform); }));
     var stats = {
       total: games.length,
       completed: games.filter(function (g) { return U.statusLabel(g.status) === "已完成"; }).length,

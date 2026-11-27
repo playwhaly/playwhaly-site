@@ -40,6 +40,9 @@ const HEADER_MAP = {
   發行日: "release_date",
   發行日期: "release_date",
   公開: "public",
+  加入日期: "added_date",
+  added_date: "added_date",
+  date_added: "added_date",
 };
 
 const STATUS_MAP = {
@@ -139,6 +142,34 @@ function statusLabel(value) {
   return STATUS_MAP[v] || STATUS_MAP[v.toLowerCase()] || v || "未玩";
 }
 
+const MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+
+function ymd(y, m, d) {
+  const Y = Number(y), M = Number(m), D = Number(d);
+  if (!(Y >= 1970 && Y <= 2100 && M >= 1 && M <= 12 && D >= 1 && D <= 31)) return "";
+  const dt = new Date(Date.UTC(Y, M - 1, D));
+  if (dt.getUTCMonth() !== M - 1) return "";
+  return Y + "-" + String(M).padStart(2, "0") + "-" + String(D).padStart(2, "0");
+}
+
+// Sheet dates: "2026-11-22" (today's format), "2026/11/22", "2026-11-22 10:00:00", "22-Nov-2026",
+// "22/11/2026" (day first, as the sheet locale writes it) or a raw serial day number. Anything else → "".
+export function normalizeDate(value) {
+  const s = String(value || "").trim();
+  if (!s) return "";
+  let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T].*)?$/);
+  if (m) return ymd(m[1], m[2], m[3]);
+  m = s.match(/^(\d{1,2})[- ]([A-Za-z]{3})[A-Za-z]*[- ,]+(\d{4})$/);
+  if (m && MONTHS[m[2].toLowerCase()]) return ymd(m[3], MONTHS[m[2].toLowerCase()], m[1]);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return ymd(m[3], m[2], m[1]);
+  if (/^\d{5}(\.\d+)?$/.test(s)) {
+    const dt = new Date(Date.UTC(1899, 11, 30) + Math.floor(Number(s)) * 86400000);
+    return ymd(dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate());
+  }
+  return "";
+}
+
 function isPrivateValue(value) {
   const v = String(value || "").trim().toLowerCase();
   return v === "0" || v === "false" || v === "no" || v === "n" || v === "私密" || v === "hidden" || v === "private";
@@ -180,6 +211,8 @@ export function gamesFromCsv(text) {
       release_date: raw.release_date || "",
     };
     if (raw.completed_date) game.completed_date = raw.completed_date;
+    const added = normalizeDate(raw.added_date);
+    if (added) game.added_date = added;
     const appid = steamAppId({ ...raw, sources: raw.sources, store_game_id: raw.store_game_id, steam_appid: raw.steam_appid });
     if (appid) game.steam_appid = appid;
     if (raw.store_url && /^https:\/\//i.test(raw.store_url) && !/gamerpower/i.test(raw.store_url)) {
